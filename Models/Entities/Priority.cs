@@ -3,6 +3,6 @@
     public class Priority : Entity
     {
         public string PriorityName { get; set; } = string.Empty;
-        ICollection<Task> Tasks { get; set; } = null!;
+        public ICollection<Task> Tasks { get; set; } = null!;
     }
 }
