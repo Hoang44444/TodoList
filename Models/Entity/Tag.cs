@@ -2,7 +2,7 @@
 {
     public class Tag : Entity
     {
-        string TagName { get; set; }
+        string TagName { get; set; } = string.Empty;
         public ICollection<Task> Tasks { get; set; } = new List<Task>();
     }
 }
