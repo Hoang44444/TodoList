@@ -1,4 +1,4 @@
-﻿namespace TodoList.Models
+﻿namespace TodoList.Models.Entity
 {
     public class Priority : Entity
     {
