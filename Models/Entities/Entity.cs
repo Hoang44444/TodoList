@@ -1,4 +1,4 @@
-﻿namespace TodoList.Models.Entity
+﻿namespace TodoList.Models.Entities
 {
     public class Entity
     {

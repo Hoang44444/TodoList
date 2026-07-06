@@ -1,6 +1,6 @@
 ﻿using TodoList.Models.Status;
 
-namespace TodoList.Models.Entity
+namespace TodoList.Models.Entities
 {
     public class Task : Entity
     {
