@@ -8,6 +8,6 @@ namespace TodoList.Repository
         void Update(T entity);
         void Delete(T entity);
         Task<T?> GetByIdAsync(int id, CancellationToken token);
-        Task<IEnumerable<T?>> GetAllAsync(CancellationToken token);
+        Task<IEnumerable<T>> GetAllAsync(CancellationToken token);
     }
 }
