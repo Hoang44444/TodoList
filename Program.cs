@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TodoList.Data;
 using TodoList.UnitOfWorks;
+using TodoList.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ITodoItemService, TodoItemService>();
 
 var app = builder.Build();
 

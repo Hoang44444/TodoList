@@ -7,9 +7,9 @@ namespace TodoList.Service
 {
     public class TodoItemService : ITodoItemService
     {
-        private readonly UnitOfWork _uow;
+        private readonly IUnitOfWork _uow;
 
-        public TodoItemService(UnitOfWork uow)
+        public TodoItemService(IUnitOfWork uow)
         {
             _uow = uow;
         }
