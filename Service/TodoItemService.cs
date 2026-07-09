@@ -1,0 +1,33 @@
+using TodoList.DTOs;
+using TodoList.Models.Entities;
+using TodoList.Models.Status;
+using TodoList.UnitOfWorks;
+
+namespace TodoList.Service
+{
+    public class TodoItemService : ITodoItemService
+    {
+        private readonly UnitOfWork _uow;
+
+        public TodoItemService(UnitOfWork uow)
+        {
+            _uow = uow;
+        }
+
+        public async Task CreateTodoItemAsync(CreateTodoItemDto createTodoItemDto, CancellationToken token)
+        {
+            var todoItem = new TodoItem
+            {
+                TodoItemName = createTodoItemDto.TodoItemName,
+                Description = createTodoItemDto.TodoItemDescription,
+                CreatedAt = DateTime.UtcNow,
+                StartDate = createTodoItemDto.StarteDate,
+                DueDate = createTodoItemDto.DueDate,
+                ReferenceNote = createTodoItemDto.ReferenceNote,
+                Status = TodoStatus.Pending,
+            };
+
+
+        }
+    }
+}

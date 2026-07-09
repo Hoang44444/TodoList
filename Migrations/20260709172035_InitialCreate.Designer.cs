@@ -12,7 +12,7 @@ using TodoList.Data;
 namespace TodoList.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260706171605_InitialCreate")]
+    [Migration("20260709172035_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -25,19 +25,19 @@ namespace TodoList.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("TagTask", b =>
+            modelBuilder.Entity("TagTodoItem", b =>
                 {
                     b.Property<int>("TagsId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TasksId")
+                    b.Property<int>("TodoItemsId")
                         .HasColumnType("int");
 
-                    b.HasKey("TagsId", "TasksId");
+                    b.HasKey("TagsId", "TodoItemsId");
 
-                    b.HasIndex("TasksId");
+                    b.HasIndex("TodoItemsId");
 
-                    b.ToTable("TagTask");
+                    b.ToTable("TagTodoItem");
                 });
 
             modelBuilder.Entity("TodoList.Models.Entities.Priority", b =>
@@ -91,7 +91,7 @@ namespace TodoList.Migrations
                     b.ToTable("Tags");
                 });
 
-            modelBuilder.Entity("TodoList.Models.Entities.Task", b =>
+            modelBuilder.Entity("TodoList.Models.Entities.TodoItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -124,7 +124,7 @@ namespace TodoList.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<string>("TaskName")
+                    b.Property<string>("TodoItemName")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -136,10 +136,10 @@ namespace TodoList.Migrations
 
                     b.HasIndex("PriorityId");
 
-                    b.ToTable("Tasks");
+                    b.ToTable("TodoItems");
                 });
 
-            modelBuilder.Entity("TagTask", b =>
+            modelBuilder.Entity("TagTodoItem", b =>
                 {
                     b.HasOne("TodoList.Models.Entities.Tag", null)
                         .WithMany()
@@ -147,17 +147,17 @@ namespace TodoList.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TodoList.Models.Entities.Task", null)
+                    b.HasOne("TodoList.Models.Entities.TodoItem", null)
                         .WithMany()
-                        .HasForeignKey("TasksId")
+                        .HasForeignKey("TodoItemsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TodoList.Models.Entities.Task", b =>
+            modelBuilder.Entity("TodoList.Models.Entities.TodoItem", b =>
                 {
                     b.HasOne("TodoList.Models.Entities.Priority", "Priority")
-                        .WithMany("Tasks")
+                        .WithMany("TodoItems")
                         .HasForeignKey("PriorityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -167,7 +167,7 @@ namespace TodoList.Migrations
 
             modelBuilder.Entity("TodoList.Models.Entities.Priority", b =>
                 {
-                    b.Navigation("Tasks");
+                    b.Navigation("TodoItems");
                 });
 #pragma warning restore 612, 618
         }

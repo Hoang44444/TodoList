@@ -1,12 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using TodoList.Models.Status;
 
 namespace TodoList.Models.Entities
 {
-    public class Task : Entity
+    public class TodoItem : Entity
     {
         [MaxLength(200)]
-        public string TaskName { get; set; } = string.Empty;
+        public string TodoItemName { get; set; } = string.Empty;
 
         [MaxLength(1000)]
         public string Description { get; set; } = string.Empty;

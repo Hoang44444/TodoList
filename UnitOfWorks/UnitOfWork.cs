@@ -8,13 +8,13 @@ namespace TodoList.UnitOfWorks
     {
         private readonly AppDbContext _context;
         private readonly Dictionary<Type, object> _repositories;
-        public ITaskRepository TaskRepository { get; }
+        public ITodoItemRepository TodoItemRepository { get; }
 
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
             _repositories = new Dictionary<Type, object>();
-            TaskRepository = new TaskRepository(_context);
+            TodoItemRepository = new TodoItemRepository(_context);
         }
 
         public void Dispose()
