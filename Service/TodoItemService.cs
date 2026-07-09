@@ -25,6 +25,7 @@ namespace TodoList.Service
                 DueDate = createTodoItemDto.DueDate,
                 ReferenceNote = createTodoItemDto.ReferenceNote,
                 Status = TodoStatus.Pending,
+                PriorityId = createTodoItemDto.PriorityId
             };
             _uow.TodoItemRepository.Add(newItem);
             await _uow.SaveChangesAsync(token);

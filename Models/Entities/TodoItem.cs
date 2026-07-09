@@ -14,8 +14,8 @@ namespace TodoList.Models.Entities
         public ICollection<Tag> Tags { get; set; } = new List<Tag>();
         public DateTime? StartDate { get; set; }
         public DateTime? DueDate { get; set; }
-        public int PriorityId { get; set; }
-        public Priority Priority { get; set; } = null!;
+        public int? PriorityId { get; set; }
+        public Priority? Priority { get; set; }
 
         [MaxLength(1000)]
         public string ReferenceNote { get; set; } = string.Empty;

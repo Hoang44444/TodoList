@@ -7,14 +7,14 @@ namespace TodoList.UnitOfWorks
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
-        private readonly ITodoItemRepository _todoItemRepository;
+        private ITodoItemRepository? _todoItemRepository;
 
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
         }
 
-        public ITodoItemRepository TodoItemRepository => _todoItemRepository ?? new TodoItemRepository(_context);
+        public ITodoItemRepository TodoItemRepository => _todoItemRepository ??= new TodoItemRepository(_context);
 
         public void Dispose()
         {
