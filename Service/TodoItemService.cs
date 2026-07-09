@@ -16,7 +16,7 @@ namespace TodoList.Service
 
         public async Task CreateTodoItemAsync(CreateTodoItemDto createTodoItemDto, CancellationToken token)
         {
-            var todoItem = new TodoItem
+            var newItem = new TodoItem
             {
                 TodoItemName = createTodoItemDto.TodoItemName,
                 Description = createTodoItemDto.TodoItemDescription,
@@ -26,8 +26,8 @@ namespace TodoList.Service
                 ReferenceNote = createTodoItemDto.ReferenceNote,
                 Status = TodoStatus.Pending,
             };
-
-
+            _uow.TodoItemRepository.Add(newItem);
+            await _uow.SaveChangesAsync(token);
         }
     }
 }
