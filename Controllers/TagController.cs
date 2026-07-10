@@ -79,5 +79,27 @@ namespace TodoList.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
+
+        [HttpGet("{tagId:int}")]
+        public async Task<IActionResult> GetTagById(int tagId, CancellationToken token)
+        {
+            try
+            {
+                var tagResponse = await _tagService.GetTagByIdAsync(tagId, token);
+                return Ok(tagResponse);
+            }
+            catch (Exception ex)
+            {
+                // Tầng 2: lỗi nghiệp vụ (không tìm thấy, validate...)
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllTags(CancellationToken token)
+        {
+            var tags = await _tagService.GetAllTagsAsync(token);
+            return Ok(tags);
+        }
     }
 }
