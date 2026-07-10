@@ -9,5 +9,6 @@ namespace TodoList.UnitOfWorks
 
         public ITodoItemRepository TodoItemRepository { get; }
         public ITagRepository TagRepository { get; }
+        public IPriorityRepository PriorityRepository { get; }
     }
 }
