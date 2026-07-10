@@ -6,6 +6,6 @@ namespace TodoList.Models.Entities
     {
         [MaxLength(50)]
         public string PriorityName { get; set; } = string.Empty;
-        public ICollection<Task> Tasks { get; set; } = new List<Task>();
+        public ICollection<TodoItem> TodoItems { get; set; } = new List<TodoItem>();
     }
 }

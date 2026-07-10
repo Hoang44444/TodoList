@@ -42,12 +42,12 @@ namespace TodoList.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tasks",
+                name: "TodoItems",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TaskName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    TodoItemName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -59,9 +59,9 @@ namespace TodoList.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tasks", x => x.Id);
+                    table.PrimaryKey("PK_TodoItems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tasks_Priorities_PriorityId",
+                        name: "FK_TodoItems_Priorities_PriorityId",
                         column: x => x.PriorityId,
                         principalTable: "Priorities",
                         principalColumn: "Id",
@@ -69,25 +69,25 @@ namespace TodoList.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TagTask",
+                name: "TagTodoItem",
                 columns: table => new
                 {
                     TagsId = table.Column<int>(type: "int", nullable: false),
-                    TasksId = table.Column<int>(type: "int", nullable: false)
+                    TodoItemsId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TagTask", x => new { x.TagsId, x.TasksId });
+                    table.PrimaryKey("PK_TagTodoItem", x => new { x.TagsId, x.TodoItemsId });
                     table.ForeignKey(
-                        name: "FK_TagTask_Tags_TagsId",
+                        name: "FK_TagTodoItem_Tags_TagsId",
                         column: x => x.TagsId,
                         principalTable: "Tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_TagTask_Tasks_TasksId",
-                        column: x => x.TasksId,
-                        principalTable: "Tasks",
+                        name: "FK_TagTodoItem_TodoItems_TodoItemsId",
+                        column: x => x.TodoItemsId,
+                        principalTable: "TodoItems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -99,13 +99,13 @@ namespace TodoList.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_TagTask_TasksId",
-                table: "TagTask",
-                column: "TasksId");
+                name: "IX_TagTodoItem_TodoItemsId",
+                table: "TagTodoItem",
+                column: "TodoItemsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tasks_PriorityId",
-                table: "Tasks",
+                name: "IX_TodoItems_PriorityId",
+                table: "TodoItems",
                 column: "PriorityId");
         }
 
@@ -113,13 +113,13 @@ namespace TodoList.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "TagTask");
+                name: "TagTodoItem");
 
             migrationBuilder.DropTable(
                 name: "Tags");
 
             migrationBuilder.DropTable(
-                name: "Tasks");
+                name: "TodoItems");
 
             migrationBuilder.DropTable(
                 name: "Priorities");

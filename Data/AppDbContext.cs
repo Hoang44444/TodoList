@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TodoList.Models.Entities;
-using Task = TodoList.Models.Entities.Task;
 
 namespace TodoList.Data
 {
@@ -8,7 +7,7 @@ namespace TodoList.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options){ }
 
-        public DbSet<Task> Tasks { get; set; } = null!;
+        public DbSet<TodoItem> TodoItems { get; set; } = null!;
         public DbSet<Priority> Priorities { get; set; } = null!;
         public DbSet<Tag> Tags { get; set; } = null!;
 
@@ -16,10 +15,10 @@ namespace TodoList.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Task -> Priority (one-to-many): chặn xóa Priority khi còn Task đang dùng
-            modelBuilder.Entity<Task>()
+            // TodoItem -> Priority (one-to-many): chặn xóa Priority khi còn TodoItem đang dùng
+            modelBuilder.Entity<TodoItem>()
                 .HasOne(t => t.Priority)
-                .WithMany(p => p.Tasks)
+                .WithMany(p => p.TodoItems)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Không cho trùng tên Tag
