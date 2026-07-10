@@ -1,4 +1,4 @@
-﻿using TodoList.DTOs.TagDTO;
+﻿using TodoList.DTOs.TagDTOs;
 using TodoList.Models.Entities;
 using TodoList.UnitOfWorks;
 
@@ -20,6 +20,19 @@ namespace TodoList.Service
             };
 
             _uow.TagRepository.Add(newTag);
+            await _uow.SaveChangesAsync(token);
+        }
+
+        public async Task UpdateTagAsync(int tagId, UpdateTagDto updateTagDto, CancellationToken token)
+        {
+            var tag = await _uow.TagRepository.GetByIdAsync(tagId, token);
+            if(tag == null)
+            {
+                throw new Exception($"Tag with ID {tagId} not found.");
+            }
+            
+            tag.TagName = updateTagDto.TagName;
+            _uow.TagRepository.Update(tag);
             await _uow.SaveChangesAsync(token);
         }
     }

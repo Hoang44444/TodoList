@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TodoList.DTOs.TagDTO
+namespace TodoList.DTOs.TagDTOs
 {
-    public class CreateTagDto
+    public class UpdateTagDto
     {
-        [Required(ErrorMessage = "Tag name is required.")]
         [MaxLength(100)]
         public string TagName { get; set; } = string.Empty;
     }
