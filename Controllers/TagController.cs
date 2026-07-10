@@ -56,5 +56,28 @@ namespace TodoList.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
+
+        [HttpDelete("{tagId:int}")]
+        public async Task<IActionResult> DeleteTag(int tagId, CancellationToken token)
+        {
+            try
+            {
+                await _tagService.DeleteTagAsync(tagId, token);
+                return Ok(new { message = "Delete Successfully" });
+            }
+            catch (DbUpdateException ex)
+            {
+                // Tầng 3: lỗi khi lưu (FK sai, trùng key, DB lỗi...)
+                return Problem(
+                    title: "Can not save the entity",
+                    detail: ex.InnerException?.Message ?? ex.Message,
+                    statusCode: StatusCodes.Status500InternalServerError);
+            }
+            catch (Exception ex)
+            {
+                // Tầng 2: lỗi nghiệp vụ (không tìm thấy, validate...)
+                return NotFound(new { message = ex.Message });
+            }
+        }
     }
 }

@@ -6,5 +6,6 @@ namespace TodoList.Service
     {
         Task CreateTagAsync(CreateTagDto createTagDto, CancellationToken token);
         Task UpdateTagAsync(int tagId, UpdateTagDto updateTagDto, CancellationToken token);
+        Task DeleteTagAsync(int tagId, CancellationToken token);
     }
 }

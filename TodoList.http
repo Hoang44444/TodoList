@@ -1,5 +1,7 @@
 @TodoList_HostAddress = http://localhost:5076
 
+DELETE {{TodoList_HostAddress}}/api/tag/6
+
 ### Update tag id = 6 (success case)
 PUT {{TodoList_HostAddress}}/api/tag/6
 Content-Type: application/json
