@@ -13,7 +13,7 @@ namespace TodoList.DTOs
         public string TodoItemDescription { get; set; } = string.Empty;
         public List<int>? TagIds { get; set; }
 
-        public DateTime? StarteDate { get; set; }
+        public DateTime? StartDate { get; set; }
         public DateTime? DueDate { get; set; }
         public int? PriorityId { get; set; }
 

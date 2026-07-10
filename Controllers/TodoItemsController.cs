@@ -34,6 +34,11 @@ namespace TodoList.Controllers
                     detail: ex.InnerException?.Message ?? ex.Message,
                     statusCode: StatusCodes.Status500InternalServerError);
             }
+            catch (Exception ex)
+            {
+                // Tầng 2: lỗi nghiệp vụ (không tìm thấy tag/priority, validate...)
+                return NotFound(new { message = ex.Message });
+            }
         }
     }
 }
