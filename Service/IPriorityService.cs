@@ -6,5 +6,8 @@ namespace TodoList.Service
     {
         Task CreatePriorityAsync(CreatePriorityDto createPriorityDto, CancellationToken token);
         Task UpdatePriorityAsync(int priorityId, UpdatePriorityDto updatePriorityDto, CancellationToken token);
+        Task DeletePriorityAsync(int priorityId, CancellationToken token);
+        Task<PriorityResponse?> GetPriorityByIdAsync(int priorityId, CancellationToken token);
+        Task<IEnumerable<PriorityResponse>> GetAllPrioritiesAsync(CancellationToken token);
     }
 }

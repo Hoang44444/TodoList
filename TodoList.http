@@ -24,10 +24,25 @@ Content-Type: application/json
   "PriorityName": "Urgent"
 }
 
-### PUT - gửi tên rỗng (lộ ra Vấn đề 1 & 2: hiện sẽ ghi đè thành "")
+### PUT - gửi tên rỗng -> mong đợi 404 + "Priority name cannot be empty."
 PUT {{localhost}}/api/priority/2
 Content-Type: application/json
 
 {
   "PriorityName": ""
 }
+
+### GET - lấy tất cả priority
+GET {{localhost}}/api/priority
+
+### GET - lấy theo id (đổi id cho khớp DB)
+GET {{localhost}}/api/priority/2
+
+### GET - id không tồn tại -> mong đợi 404 NotFound
+GET {{localhost}}/api/priority/99999
+
+### DELETE - xóa theo id (đổi id cho khớp DB)
+DELETE {{localhost}}/api/priority/2
+
+### DELETE - id không tồn tại -> mong đợi 404 NotFound
+DELETE {{localhost}}/api/priority/99999

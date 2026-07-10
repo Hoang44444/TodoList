@@ -43,5 +43,42 @@ namespace TodoList.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
+
+        [HttpDelete("{priorityId:int}")]
+        public async Task<IActionResult> DeletePriority(int priorityId, CancellationToken token)
+        {
+            try
+            {
+                await _priorityService.DeletePriorityAsync(priorityId, token);
+                return Ok(new { message = "Delete Successfully" });
+            }
+            catch (Exception ex)
+            {
+                // Tầng 2: lỗi nghiệp vụ (không tìm thấy, validate...)
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{priorityId:int}")]
+        public async Task<IActionResult> GetPriorityById(int priorityId, CancellationToken token)
+        {
+            try
+            {
+                var priorityResponse = await _priorityService.GetPriorityByIdAsync(priorityId, token);
+                return Ok(priorityResponse);
+            }
+            catch (Exception ex)
+            {
+                // Tầng 2: lỗi nghiệp vụ (không tìm thấy, validate...)
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllPriorities(CancellationToken token)
+        {
+            var priorities = await _priorityService.GetAllPrioritiesAsync(token);
+            return Ok(priorities);
+        }
     }
 }
