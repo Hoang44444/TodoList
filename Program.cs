@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITodoItemService, TodoItemService>();
 builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<IPriorityService, PriorityService>();
 
 var app = builder.Build();
 

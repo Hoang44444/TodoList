@@ -1,2 +1,8 @@
 @localhost = http://localhost:5076
 
+POST {{localhost}}/api/priority
+Content-Type: application/json
+
+{
+  "PriorityName": ""
+}
