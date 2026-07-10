@@ -8,5 +8,6 @@ namespace TodoList.UnitOfWorks
         Task<int> SaveChangesAsync(CancellationToken token);
 
         public ITodoItemRepository TodoItemRepository { get; }
+        public ITagRepository TagRepository { get; }
     }
 }

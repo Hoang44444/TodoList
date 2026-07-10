@@ -14,6 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITodoItemService, TodoItemService>();
+builder.Services.AddScoped<ITagService, TagService>();
 
 var app = builder.Build();
 

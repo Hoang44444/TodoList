@@ -8,6 +8,7 @@ namespace TodoList.UnitOfWorks
     {
         private readonly AppDbContext _context;
         private ITodoItemRepository? _todoItemRepository;
+        private ITagRepository? _tagRepository;
 
         public UnitOfWork(AppDbContext context)
         {
@@ -15,6 +16,8 @@ namespace TodoList.UnitOfWorks
         }
 
         public ITodoItemRepository TodoItemRepository => _todoItemRepository ??= new TodoItemRepository(_context);
+
+        public ITagRepository TagRepository => _tagRepository ??= new TagRepository(_context);
 
         public void Dispose()
         {
