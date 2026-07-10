@@ -1,6 +1,31 @@
 @localhost = http://localhost:5076
 
+### POST - tạo mới priority
 POST {{localhost}}/api/priority
+Content-Type: application/json
+
+{
+  "PriorityName": "High"
+}
+
+### PUT - update thành công (đổi id cho khớp dữ liệu trong DB)
+PUT {{localhost}}/api/priority/2
+Content-Type: application/json
+
+{
+  "PriorityName": "Urgent"
+}
+
+### PUT - id không tồn tại -> mong đợi 404 NotFound
+PUT {{localhost}}/api/priority/99999
+Content-Type: application/json
+
+{
+  "PriorityName": "Urgent"
+}
+
+### PUT - gửi tên rỗng (lộ ra Vấn đề 1 & 2: hiện sẽ ghi đè thành "")
+PUT {{localhost}}/api/priority/2
 Content-Type: application/json
 
 {

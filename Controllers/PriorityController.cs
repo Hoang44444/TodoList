@@ -28,5 +28,20 @@ namespace TodoList.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPut("{priorityId:int}")]
+        public async Task<IActionResult> UpdatePriority(int priorityId, [FromBody] UpdatePriorityDto updatePriorityDto, CancellationToken token)
+        {
+            try
+            {
+                await _priorityService.UpdatePriorityAsync(priorityId, updatePriorityDto, token);
+                return Ok(new { message = "Update Successfully" });
+            }
+            catch (Exception ex)
+            {
+                // Tầng 2: lỗi nghiệp vụ (không tìm thấy, validate...)
+                return NotFound(new { message = ex.Message });
+            }
+        }
     }
 }
