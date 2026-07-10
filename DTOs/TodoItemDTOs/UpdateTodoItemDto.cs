@@ -1,11 +1,9 @@
-using System.ComponentModel.DataAnnotations;
-using TodoList.Models.Status;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace TodoList.DTOs
+namespace TodoList.DTOs.TodoItemDTOs
 {
-    public class CreateTodoItemDto
+    public class UpdateTodoItemDto
     {
-        [Required(ErrorMessage = "Task name can not be empty")]
         [MaxLength(200)]
         public string TodoItemName { get; set; } = string.Empty;
 
