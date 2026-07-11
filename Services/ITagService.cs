@@ -1,13 +1,13 @@
 ﻿using TodoList.DTOs.TagDTOs;
 
-namespace TodoList.Service
+namespace TodoList.Services
 {
     public interface ITagService
     {
         Task CreateTagAsync(CreateTagDto createTagDto, CancellationToken token);
         Task UpdateTagAsync(int tagId, UpdateTagDto updateTagDto, CancellationToken token);
         Task DeleteTagAsync(int tagId, CancellationToken token);
-        Task<TagResponse?> GetTagByIdAsync(int tagId, CancellationToken token);
-        Task<IEnumerable<TagResponse>> GetAllTagsAsync(CancellationToken token);
+        Task<TagResponseDto?> GetTagByIdAsync(int tagId, CancellationToken token);
+        Task<IEnumerable<TagResponseDto>> GetAllTagsAsync(CancellationToken token);
     }
 }

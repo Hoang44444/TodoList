@@ -1,6 +1,6 @@
 using TodoList.DTOs.TodoItemDTOs;
 
-namespace TodoList.Service
+namespace TodoList.Services
 {
     public interface ITodoItemService
     {

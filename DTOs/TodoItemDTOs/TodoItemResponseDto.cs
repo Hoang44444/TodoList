@@ -7,7 +7,7 @@ namespace TodoList.DTOs.TodoItemDTOs
         public int Id { get; set; }
         public string TodoItemName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public List<TagResponse> Tags { get; set; } = new List<TagResponse>();
+        public List<TagResponseDto> Tags { get; set; } = new List<TagResponseDto>();
         public DateTime? StartDate { get; set; }
         public DateTime? DueDate { get; set; }
         public int? PriorityId { get; set; }

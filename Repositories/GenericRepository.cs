@@ -2,7 +2,7 @@
 using TodoList.Data;
 using TodoList.Models.Entities;
 
-namespace TodoList.Repository
+namespace TodoList.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : Entity
     {

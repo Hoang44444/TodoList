@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TodoList.Data;
 using TodoList.Models.Entities;
 
-namespace TodoList.Repository
+namespace TodoList.Repositories
 {
     public class TodoItemRepository : GenericRepository<TodoItem>, ITodoItemRepository
     {

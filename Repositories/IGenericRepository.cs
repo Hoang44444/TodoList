@@ -1,6 +1,6 @@
 ﻿using TodoList.Models.Entities;
 
-namespace TodoList.Repository
+namespace TodoList.Repositories
 {
     public interface IGenericRepository<T> where T : Entity
     {

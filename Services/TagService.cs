@@ -1,8 +1,9 @@
 ﻿using TodoList.DTOs.TagDTOs;
+using TodoList.Exceptions;
 using TodoList.Models.Entities;
 using TodoList.UnitOfWorks;
 
-namespace TodoList.Service
+namespace TodoList.Services
 {
     public class TagService : ITagService
     {
@@ -28,7 +29,7 @@ namespace TodoList.Service
             var tag = await _uow.TagRepository.GetByIdAsync(tagId, token);
             if (tag == null)
             {
-                throw new Exception($"Tag with ID {tagId} not found.");
+                throw new NotFoundException($"Tag with ID {tagId} not found.");
             }
 
             tag.TagName = updateTagDto.TagName;
@@ -42,31 +43,31 @@ namespace TodoList.Service
             var tag = await _uow.TagRepository.GetByIdAsync(tagId, token);
             if (tag == null)
             {
-                throw new Exception($"Tag with ID {tagId} not found.");
+                throw new NotFoundException($"Tag with ID {tagId} not found.");
             }
             _uow.TagRepository.Delete(tag);
             await _uow.SaveChangesAsync(token);
         }
 
-        public async Task<TagResponse?> GetTagByIdAsync(int tagId, CancellationToken token)
+        public async Task<TagResponseDto?> GetTagByIdAsync(int tagId, CancellationToken token)
         {
             var tag = await _uow.TagRepository.GetByIdAsync(tagId, token);
             if (tag == null)
             {
-                throw new Exception($"Tag with ID {tagId} not found.");
+                throw new NotFoundException($"Tag with ID {tagId} not found.");
             }
 
-            return new TagResponse
+            return new TagResponseDto
             {
                 Id = tag.Id,
                 TagName = tag.TagName
             };
         }
 
-        public async Task<IEnumerable<TagResponse>> GetAllTagsAsync(CancellationToken token)
+        public async Task<IEnumerable<TagResponseDto>> GetAllTagsAsync(CancellationToken token)
         {
             var tags = await _uow.TagRepository.GetAllAsync(token);
-            return tags.Select(tag => new TagResponse
+            return tags.Select(tag => new TagResponseDto
             {
                 Id = tag.Id,
                 TagName = tag.TagName

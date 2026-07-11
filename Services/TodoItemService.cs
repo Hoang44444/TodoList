@@ -1,10 +1,11 @@
 using TodoList.DTOs.TagDTOs;
 using TodoList.DTOs.TodoItemDTOs;
+using TodoList.Exceptions;
 using TodoList.Models.Entities;
 using TodoList.Models.Status;
 using TodoList.UnitOfWorks;
 
-namespace TodoList.Service
+namespace TodoList.Services
 {
     public class TodoItemService : ITodoItemService
     {
@@ -22,7 +23,7 @@ namespace TodoList.Service
             {
                 if (!tags.Any(t => t.Id == tagId))
                 {
-                    throw new Exception($"Tag with Id {tagId} not found");
+                    throw new BadRequestException($"Tag with Id {tagId} not found");
                 }
             }
 
@@ -31,7 +32,7 @@ namespace TodoList.Service
                 var priority = await _uow.PriorityRepository.GetByIdAsync(createTodoItemDto.PriorityId.Value, token);
                 if (priority == null)
                 {
-                    throw new Exception("Priority not found");
+                    throw new BadRequestException("Priority not found");
                 }
             }
 
@@ -39,7 +40,7 @@ namespace TodoList.Service
             {
                 if (createTodoItemDto.StartDate > createTodoItemDto.DueDate)
                 {
-                    throw new Exception("Start date cannot be later than due date");
+                    throw new BadRequestException("Start date cannot be later than due date");
                 }
             }
 
@@ -65,7 +66,7 @@ namespace TodoList.Service
             var todoItem = await _uow.TodoItemRepository.GetByIdWithTagsAsync(todoItemId, token);
             if (todoItem == null)
             {
-                throw new Exception($"TodoItem with id: {todoItemId} not found");
+                throw new NotFoundException($"TodoItem with id: {todoItemId} not found");
             }
 
             _uow.TodoItemRepository.Delete(todoItem);
@@ -77,7 +78,7 @@ namespace TodoList.Service
             var todoItem = await _uow.TodoItemRepository.GetByIdWithDetailsAsync(todoItemId, token);
             if (todoItem == null)
             {
-                throw new Exception($"TodoItem with id: {todoItemId} not found");
+                throw new NotFoundException($"TodoItem with id: {todoItemId} not found");
             }
 
             return MapToResponse(todoItem);
@@ -96,7 +97,7 @@ namespace TodoList.Service
                 Id = todoItem.Id,
                 TodoItemName = todoItem.TodoItemName,
                 Description = todoItem.Description,
-                Tags = todoItem.Tags.Select(tag => new TagResponse
+                Tags = todoItem.Tags.Select(tag => new TagResponseDto
                 {
                     Id = tag.Id,
                     TagName = tag.TagName
@@ -117,12 +118,12 @@ namespace TodoList.Service
             var todoItem = await _uow.TodoItemRepository.GetByIdWithTagsAsync(todoItemId, token);
             if (todoItem == null)
             {
-                throw new Exception($"TodoItem with id: {todoItemId} not found");
+                throw new NotFoundException($"TodoItem with id: {todoItemId} not found");
             }
 
             if (string.IsNullOrWhiteSpace(updateTodoItemDto.TodoItemName))
             {
-                throw new Exception("TodoItem name cannot be empty");
+                throw new BadRequestException("TodoItem name cannot be empty");
             }
 
             var tags = await _uow.TagRepository.GetAllAsync(token);
@@ -130,7 +131,7 @@ namespace TodoList.Service
             {
                 if (!tags.Any(t => t.Id == tagId))
                 {
-                    throw new Exception($"Tag with Id {tagId} not found");
+                    throw new BadRequestException($"Tag with Id {tagId} not found");
                 }
             }
 
@@ -139,7 +140,7 @@ namespace TodoList.Service
                 var priority = await _uow.PriorityRepository.GetByIdAsync(updateTodoItemDto.PriorityId.Value, token);
                 if (priority == null)
                 {
-                    throw new Exception("Priority not found");
+                    throw new BadRequestException("Priority not found");
                 }
             }
 
@@ -147,7 +148,7 @@ namespace TodoList.Service
             {
                 if (updateTodoItemDto.StartDate > updateTodoItemDto.DueDate)
                 {
-                    throw new Exception("Start date cannot be later than due date");
+                    throw new BadRequestException("Start date cannot be later than due date");
                 }
             }
 

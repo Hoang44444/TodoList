@@ -1,7 +1,7 @@
 ﻿using TodoList.Data;
 using TodoList.Models.Entities;
 
-namespace TodoList.Repository
+namespace TodoList.Repositories
 {
     public class TagRepository : GenericRepository<Tag>, ITagRepository
     {

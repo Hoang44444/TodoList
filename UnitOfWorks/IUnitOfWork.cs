@@ -1,5 +1,5 @@
 ﻿using TodoList.Models.Entities;
-using TodoList.Repository;
+using TodoList.Repositories;
 
 namespace TodoList.UnitOfWorks
 {

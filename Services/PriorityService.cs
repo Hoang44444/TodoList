@@ -1,8 +1,9 @@
 ﻿using TodoList.DTOs.PriorityDTOs;
+using TodoList.Exceptions;
 using TodoList.UnitOfWorks;
 using TodoList.Models.Entities;
 
-namespace TodoList.Service
+namespace TodoList.Services
 {
     public class PriorityService : IPriorityService
     {
@@ -28,11 +29,11 @@ namespace TodoList.Service
             var existingPriority = await _uow.PriorityRepository.GetByIdAsync(priorityId, token);
             if(existingPriority == null)
             {
-                throw new Exception($"Priority with ID {priorityId} not found.");
+                throw new NotFoundException($"Priority with ID {priorityId} not found.");
             }
             if(string.IsNullOrWhiteSpace(updatePriorityDto.PriorityName))
             {
-                throw new Exception("Priority name cannot be empty.");
+                throw new BadRequestException("Priority name cannot be empty.");
             }
             existingPriority.PriorityName = updatePriorityDto.PriorityName;
             existingPriority.UpdatedAt = DateTime.UtcNow;
@@ -46,31 +47,31 @@ namespace TodoList.Service
             var existingPriority = await _uow.PriorityRepository.GetByIdAsync(priorityId, token);
             if (existingPriority == null)
             {
-                throw new Exception($"Priority with ID {priorityId} not found.");
+                throw new NotFoundException($"Priority with ID {priorityId} not found.");
             }
             _uow.PriorityRepository.Delete(existingPriority);
             await _uow.SaveChangesAsync(token);
         }
 
-        public async Task<PriorityResponse?> GetPriorityByIdAsync(int priorityId, CancellationToken token)
+        public async Task<PriorityResponseDto?> GetPriorityByIdAsync(int priorityId, CancellationToken token)
         {
             var priority = await _uow.PriorityRepository.GetByIdAsync(priorityId, token);
             if (priority == null)
             {
-                throw new Exception($"Priority with ID {priorityId} not found.");
+                throw new NotFoundException($"Priority with ID {priorityId} not found.");
             }
 
-            return new PriorityResponse
+            return new PriorityResponseDto
             {
                 Id = priority.Id,
                 PriorityName = priority.PriorityName
             };
         }
 
-        public async Task<IEnumerable<PriorityResponse>> GetAllPrioritiesAsync(CancellationToken token)
+        public async Task<IEnumerable<PriorityResponseDto>> GetAllPrioritiesAsync(CancellationToken token)
         {
             var priorities = await _uow.PriorityRepository.GetAllAsync(token);
-            return priorities.Select(priority => new PriorityResponse
+            return priorities.Select(priority => new PriorityResponseDto
             {
                 Id = priority.Id,
                 PriorityName = priority.PriorityName
