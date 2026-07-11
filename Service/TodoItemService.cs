@@ -1,3 +1,4 @@
+using TodoList.DTOs.TagDTOs;
 using TodoList.DTOs.TodoItemDTOs;
 using TodoList.Models.Entities;
 using TodoList.Models.Status;
@@ -57,6 +58,58 @@ namespace TodoList.Service
             _uow.TodoItemRepository.Add(newTodoItem);
             await _uow.SaveChangesAsync(token);
 
+        }
+
+        public async Task DeleteTodoItemAsync(int todoItemId, CancellationToken token)
+        {
+            var todoItem = await _uow.TodoItemRepository.GetByIdWithTagsAsync(todoItemId, token);
+            if (todoItem == null)
+            {
+                throw new Exception($"TodoItem with id: {todoItemId} not found");
+            }
+
+            _uow.TodoItemRepository.Delete(todoItem);
+            await _uow.SaveChangesAsync(token);
+        }
+
+        public async Task<TodoItemResponseDto> GetTodoItemByIdAsync(int todoItemId, CancellationToken token)
+        {
+            var todoItem = await _uow.TodoItemRepository.GetByIdWithDetailsAsync(todoItemId, token);
+            if (todoItem == null)
+            {
+                throw new Exception($"TodoItem with id: {todoItemId} not found");
+            }
+
+            return MapToResponse(todoItem);
+        }
+
+        public async Task<IEnumerable<TodoItemResponseDto>> GetAllTodoItemsAsync(CancellationToken token)
+        {
+            var todoItems = await _uow.TodoItemRepository.GetAllWithDetailsAsync(token);
+            return todoItems.Select(MapToResponse);
+        }
+
+        private static TodoItemResponseDto MapToResponse(TodoItem todoItem)
+        {
+            return new TodoItemResponseDto
+            {
+                Id = todoItem.Id,
+                TodoItemName = todoItem.TodoItemName,
+                Description = todoItem.Description,
+                Tags = todoItem.Tags.Select(tag => new TagResponse
+                {
+                    Id = tag.Id,
+                    TagName = tag.TagName
+                }).ToList(),
+                StartDate = todoItem.StartDate,
+                DueDate = todoItem.DueDate,
+                PriorityId = todoItem.PriorityId,
+                PriorityName = todoItem.Priority?.PriorityName,
+                ReferenceNote = todoItem.ReferenceNote,
+                Status = todoItem.Status.ToString(),
+                CreatedAt = todoItem.CreatedAt,
+                UpdatedAt = todoItem.UpdatedAt
+            };
         }
 
         public async Task UpdateTodoItemAsync(int todoItemId, UpdateTodoItemDto updateTodoItemDto, CancellationToken token)

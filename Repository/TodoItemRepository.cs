@@ -19,5 +19,24 @@ namespace TodoList.Repository
                 .Include(t => t.Tags)
                 .FirstOrDefaultAsync(t => t.Id == id, token);
         }
+
+        // Nạp kèm Tags + Priority cho GET (cần PriorityName để trả về response)
+        public async Task<TodoItem?> GetByIdWithDetailsAsync(int id, CancellationToken token)
+        {
+            return await _context.TodoItems
+                .Include(t => t.Tags)
+                .Include(t => t.Priority)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id, token);
+        }
+
+        public async Task<IEnumerable<TodoItem>> GetAllWithDetailsAsync(CancellationToken token)
+        {
+            return await _context.TodoItems
+                .Include(t => t.Tags)
+                .Include(t => t.Priority)
+                .AsNoTracking()
+                .ToListAsync(token);
+        }
     }
 }
