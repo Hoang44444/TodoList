@@ -4,5 +4,8 @@ namespace TodoList.Repository
 {
     public interface ITodoItemRepository : IGenericRepository<TodoItem>
     {
+        Task<TodoItem?> GetByIdWithTagsAsync(int id, CancellationToken token);
+        Task<TodoItem?> GetByIdWithDetailsAsync(int id, CancellationToken token);
+        Task<IEnumerable<TodoItem>> GetAllWithDetailsAsync(CancellationToken token);
     }
 }

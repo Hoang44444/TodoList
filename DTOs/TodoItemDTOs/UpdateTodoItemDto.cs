@@ -1,11 +1,9 @@
-using System.ComponentModel.DataAnnotations;
-using TodoList.Models.Status;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace TodoList.DTOs
+namespace TodoList.DTOs.TodoItemDTOs
 {
-    public class CreateTodoItemDto
+    public class UpdateTodoItemDto
     {
-        [Required(ErrorMessage = "Task name can not be empty")]
         [MaxLength(200)]
         public string TodoItemName { get; set; } = string.Empty;
 
@@ -13,7 +11,7 @@ namespace TodoList.DTOs
         public string TodoItemDescription { get; set; } = string.Empty;
         public List<int>? TagIds { get; set; }
 
-        public DateTime? StarteDate { get; set; }
+        public DateTime? StartDate { get; set; }
         public DateTime? DueDate { get; set; }
         public int? PriorityId { get; set; }
 
