@@ -106,6 +106,30 @@
             }
         </div>
     }
+    else if (_activeTab == "Week")
+    {
+        <div class="bd-week">
+            @foreach (var day in WeekDays())
+            {
+                var isToday = day == Today;
+                var dayTasks = Filtered().Where(t => t.DueDate?.Date == day).ToList();
+                <div class="bd-week-day">
+                    <div class="bd-week-head @(isToday ? "today" : "")">
+                        <span class="bd-week-dow">@DowVi(day)</span>
+                        <span class="bd-week-date">@day.ToString("dd/MM")</span>
+                        @if (isToday)
+                        {
+                            <span class="bd-week-today">hôm nay</span>
+                        }
+                    </div>
+                    @foreach (var t in dayTasks)
+                    {
+                        @WeekCard(t)
+                    }
+                </div>
+            }
+        </div>
+    }
     else
     {
         <div class="bd-loading">Tab "@_activeTab" đang phát triển — sẽ làm ở bước sau.</div>
@@ -332,6 +356,53 @@
             <button class="bd-act stop" @onclick="() => Stop(t)">stop</button>
         }
         <button class="bd-del" title="Xóa" @onclick="() => Delete(t)">×</button>
+    </div>;
+
+    // ---- week helpers ----
+    private static IEnumerable<DateTime> WeekDays()
+    {
+        var diff = ((int)Today.DayOfWeek + 6) % 7; // Thứ Hai = 0
+        var monday = Today.AddDays(-diff);
+        return Enumerable.Range(0, 7).Select(i => monday.AddDays(i));
+    }
+
+    private static string DowVi(DateTime d) => d.DayOfWeek switch
+    {
+        DayOfWeek.Monday => "T2",
+        DayOfWeek.Tuesday => "T3",
+        DayOfWeek.Wednesday => "T4",
+        DayOfWeek.Thursday => "T5",
+        DayOfWeek.Friday => "T6",
+        DayOfWeek.Saturday => "T7",
+        _ => "CN",
+    };
+
+    private static string WeekTime(TodoItemResponseDto t)
+    {
+        if (!t.DueDate.HasValue) return "";
+        var d = t.DueDate.Value;
+        return d.TimeOfDay == TimeSpan.Zero ? "" : d.ToString("HH:mm");
+    }
+
+    private RenderFragment WeekCard(TodoItemResponseDto t) =>@<div class="bd-week-card @Bucket(t)">
+        <div class="bd-week-card-top">
+            <button class="bd-check @(IsDone(t) ? "done" : "")" title="Đổi hoàn thành" @onclick="() => ToggleDone(t)">@(IsDone(t) ? "✓" : "")</button>
+            <span class="bd-week-card-title @(IsDone(t) ? "done" : "")">@t.TodoItemName</span>
+            <button class="bd-del" title="Xóa" @onclick="() => Delete(t)">×</button>
+        </div>
+        @if (t.Tags.Count > 0 || WeekTime(t).Length > 0)
+        {
+            <div class="bd-week-meta">
+                @foreach (var tag in t.Tags)
+                {
+                    <span class="bd-tag">@tag.TagName</span>
+                }
+                @if (WeekTime(t).Length > 0)
+                {
+                    <span class="bd-week-time">@WeekTime(t)</span>
+                }
+            </div>
+        }
     </div>;
 
     // ---- actions ----
