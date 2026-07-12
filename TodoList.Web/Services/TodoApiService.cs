@@ -33,5 +33,11 @@ namespace TodoList.Web.Services
 
         public async Task DeleteAsync(int id)
             => await _http.DeleteAsync($"api/todoitems/{id}");
+
+        public async Task<List<TagResponseDto>> GetTagsAsync()
+            => await _http.GetFromJsonAsync<List<TagResponseDto>>("api/tags") ?? new();
+
+        public async Task<List<PriorityResponseDto>> GetPrioritiesAsync()
+            => await _http.GetFromJsonAsync<List<PriorityResponseDto>>("api/priorities") ?? new();
     }
 }
