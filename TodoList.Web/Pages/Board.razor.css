@@ -960,6 +960,30 @@
 .bd-btn.primary:hover { background: #bcaef7; }
 .bd-btn.primary:disabled { opacity: .4; cursor: default; }
 
+.bd-btn.danger {
+    margin-right: auto;
+    background: transparent;
+    border: 1px solid rgba(242, 139, 139, .4);
+    color: #f28b8b;
+}
+
+.bd-btn.danger:hover { background: rgba(242, 139, 139, .12); }
+
+/* ===== clickable title ===== */
+.bd-title-click { cursor: pointer; }
+.bd-title-click:hover { color: #cabdf7; }
+
+/* ===== reference link in composer ===== */
+.bd-ref-open {
+    font-size: 12px;
+    color: #8ab4ff;
+    text-decoration: none;
+    width: fit-content;
+    margin-top: -4px;
+}
+
+.bd-ref-open:hover { text-decoration: underline; }
+
 /* scrollbars */
 .bd-board::-webkit-scrollbar,
 .bd-col-body::-webkit-scrollbar,
