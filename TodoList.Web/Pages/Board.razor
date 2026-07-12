@@ -1,0 +1,349 @@
+@page "/board"
+@layout BlankLayout
+@using System.Globalization
+@inject ITodoApiService Api
+
+<PageTitle>studylist</PageTitle>
+
+<div class="board-root">
+
+    @* ---------- HEADER ---------- *@
+    <header class="bd-header">
+        <div class="bd-logo-badge">✓</div>
+        <div class="bd-logo">studylist</div>
+        <div class="bd-tabs">
+            @foreach (var tab in Tabs)
+            {
+                <button class="bd-tab @(tab == _activeTab ? "active" : "")" @onclick="() => _activeTab = tab">@tab</button>
+            }
+        </div>
+        <div class="bd-spacer"></div>
+        <div class="bd-date">@DateTime.Today.ToString("ddd, MMM d", CultureInfo.InvariantCulture)</div>
+        <input class="bd-search" placeholder="⌕ Tìm công việc" @bind="_search" @bind:event="oninput" />
+        <button class="bd-add" @onclick="OpenComposer">+ Thêm</button>
+    </header>
+
+    @if (_error is not null)
+    {
+        <div class="bd-error">@_error</div>
+    }
+
+    @* ---------- STATS STRIP ---------- *@
+    <div class="bd-stats">
+        <div class="bd-stat">
+            <div class="bd-stat-label">Hôm nay</div>
+            <div class="bd-stat-val">@TodayDone <span class="bd-stat-sub">/ @TodayTotal xong</span></div>
+        </div>
+        <div class="bd-stat">
+            <div class="bd-stat-label">Đang làm</div>
+            <div class="bd-stat-val purple">@InProgressCount</div>
+        </div>
+        <div class="bd-stat">
+            <div class="bd-stat-label">Trễ hạn</div>
+            <div class="bd-stat-val red">@OverdueCount</div>
+        </div>
+        <div class="bd-stat">
+            <div class="bd-stat-label">Hoàn thành</div>
+            <div class="bd-stat-val green">@DoneTotal</div>
+        </div>
+    </div>
+
+    @* ---------- BOARD ---------- *@
+    @if (_todos is null)
+    {
+        <div class="bd-loading">Đang tải…</div>
+    }
+    else if (_activeTab == "Board")
+    {
+        <div class="bd-board">
+            @foreach (var col in Columns())
+            {
+                <section class="bd-col">
+                    <div class="bd-col-head">
+                        <span class="bd-col-dot" style="background:@col.Color"></span>
+                        <span class="bd-col-label" style="color:@col.Color">@col.Label</span>
+                        <span class="bd-col-count">@col.Tasks.Count</span>
+                    </div>
+                    <div class="bd-col-body">
+                        @foreach (var t in col.Tasks)
+                        {
+                            @Card(t)
+                        }
+                        @if (col.Key == "todo")
+                        {
+                            <button class="bd-quick-add" @onclick="OpenComposer">+ Thêm công việc</button>
+                        }
+                        else if (col.Tasks.Count == 0)
+                        {
+                            <div class="bd-empty">@col.Empty</div>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="bd-loading">Tab "@_activeTab" đang phát triển — sẽ làm ở bước sau.</div>
+    }
+
+    @* ---------- COMPOSER MODAL ---------- *@
+    @if (_showComposer)
+    {
+        <div class="bd-overlay" @onclick="CloseComposer">
+            <div class="bd-modal" @onclick:stopPropagation="true">
+                <div class="bd-modal-head">
+                    <div class="bd-modal-title">Công việc mới</div>
+                    <button class="bd-x" @onclick="CloseComposer">×</button>
+                </div>
+
+                <input class="bd-input" placeholder="Tên công việc — vd: Ôn thi EF Core"
+                       @bind="_dTitle" @bind:event="oninput" />
+
+                <label class="bd-label">Mô tả</label>
+                <textarea class="bd-input bd-textarea" rows="3" placeholder="Chi tiết, yêu cầu, ghi chú…"
+                          @bind="_dDesc" @bind:event="oninput"></textarea>
+
+                <div class="bd-row2">
+                    <div>
+                        <label class="bd-label">Bắt đầu</label>
+                        <input type="date" class="bd-input" @bind="_dStart" />
+                    </div>
+                    <div>
+                        <label class="bd-label">Hạn</label>
+                        <input type="date" class="bd-input" @bind="_dDue" />
+                    </div>
+                </div>
+
+                <label class="bd-label">Ưu tiên</label>
+                <div class="bd-chips">
+                    <button class="bd-chip @(_dPriority is null ? "sel" : "")" @onclick="() => _dPriority = null">None</button>
+                    @foreach (var p in _priorities.Where(x => x.Id.HasValue))
+                    {
+                        <button class="bd-chip @(_dPriority == p.Id ? "sel" : "")" @onclick="() => _dPriority = p.Id">@p.PriorityName</button>
+                    }
+                </div>
+
+                <label class="bd-label">Tag</label>
+                <div class="bd-chips">
+                    @if (_tags.Count == 0)
+                    {
+                        <span class="bd-hint">Chưa có tag nào</span>
+                    }
+                    @foreach (var tg in _tags.Where(x => x.Id.HasValue))
+                    {
+                        <button class="bd-chip @(_dTags.Contains(tg.Id!.Value) ? "sel" : "")" @onclick="() => ToggleTag(tg.Id!.Value)">@tg.TagName</button>
+                    }
+                </div>
+
+                <label class="bd-label">Tham chiếu</label>
+                <input class="bd-input" placeholder="Ghi chú / link…" @bind="_dRef" @bind:event="oninput" />
+
+                <div class="bd-modal-foot">
+                    <button class="bd-btn ghost" @onclick="CloseComposer">Hủy</button>
+                    <button class="bd-btn primary" @onclick="SubmitComposer" disabled="@(string.IsNullOrWhiteSpace(_dTitle))">Thêm</button>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+    private static readonly string[] Tabs = { "List", "Board", "Week", "Stats" };
+    private string _activeTab = "Board";
+
+    private List<TodoItemResponseDto>? _todos;
+    private List<TagResponseDto> _tags = new();
+    private List<PriorityResponseDto> _priorities = new();
+    private string? _error;
+
+    private string _search = "";
+
+    // composer draft
+    private bool _showComposer;
+    private string _dTitle = "";
+    private string _dDesc = "";
+    private DateTime? _dStart;
+    private DateTime? _dDue;
+    private int? _dPriority;
+    private readonly HashSet<int> _dTags = new();
+    private string _dRef = "";
+
+    private static DateTime Today => DateTime.Today;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _tags = await Api.GetTagsAsync();
+            _priorities = await Api.GetPrioritiesAsync();
+        }
+        catch { /* tag/priority không chặn board */ }
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _error = null;
+            _todos = await Api.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Không tải được dữ liệu: {ex.Message}";
+        }
+    }
+
+    // ---- classify ----
+    private static bool IsDone(TodoItemResponseDto t) => t.Status == "Done";
+    private static bool IsOverdue(TodoItemResponseDto t)
+        => !IsDone(t) && t.DueDate.HasValue && t.DueDate.Value.Date < Today;
+
+    private static string Bucket(TodoItemResponseDto t)
+    {
+        if (IsDone(t)) return "done";
+        if (IsOverdue(t)) return "overdue";
+        return t.Status == "InProgress" ? "doing" : "todo";
+    }
+
+    private IEnumerable<TodoItemResponseDto> Filtered()
+    {
+        var q = _search.Trim().ToLowerInvariant();
+        var items = _todos ?? new();
+        return items
+            .Where(t => q.Length == 0 || t.TodoItemName.ToLowerInvariant().Contains(q))
+            .OrderBy(t => t.DueDate ?? DateTime.MaxValue);
+    }
+
+    private record Col(string Key, string Label, string Color, string Empty, List<TodoItemResponseDto> Tasks);
+
+    private List<Col> Columns()
+    {
+        var f = Filtered().ToList();
+        List<TodoItemResponseDto> In(string b) => f.Where(t => Bucket(t) == b).ToList();
+        return new()
+        {
+            new("overdue", "Trễ hạn",   "#f28b8b", "Không có việc trễ — tuyệt!", In("overdue")),
+            new("todo",    "Cần làm",   "rgba(255,255,255,.6)", "", In("todo")),
+            new("doing",   "Đang làm",  "#a996f2", "Chưa có việc nào đang làm", In("doing")),
+            new("done",    "Hoàn thành","#7bd8b0", "Chưa hoàn thành việc nào", In("done")),
+        };
+    }
+
+    // ---- stats ----
+    private int TodayTotal => (_todos ?? new()).Count(t => t.DueDate?.Date == Today);
+    private int TodayDone => (_todos ?? new()).Count(t => t.DueDate?.Date == Today && IsDone(t));
+    private int InProgressCount => (_todos ?? new()).Count(t => t.Status == "InProgress");
+    private int OverdueCount => (_todos ?? new()).Count(IsOverdue);
+    private int DoneTotal => (_todos ?? new()).Count(IsDone);
+
+    private static string DueLabel(TodoItemResponseDto t)
+    {
+        if (IsDone(t)) return "✓";
+        if (!t.DueDate.HasValue) return "";
+        var d = t.DueDate.Value;
+        var datePart = d.Date == Today ? "hôm nay" : d.ToString("dd/MM");
+        var timePart = d.TimeOfDay == TimeSpan.Zero ? "" : " " + d.ToString("HH:mm");
+        return datePart + timePart;
+    }
+
+    // ---- card template ----
+    private RenderFragment Card(TodoItemResponseDto t) =>@<div class="bd-card @Bucket(t)">
+        <div class="bd-card-top">
+            <button class="bd-check @(IsDone(t) ? "done" : "")" title="Đổi hoàn thành" @onclick="() => ToggleDone(t)">@(IsDone(t) ? "✓" : "")</button>
+            <div class="bd-card-title @(IsDone(t) ? "done" : "")">@t.TodoItemName</div>
+            <button class="bd-del" title="Xóa" @onclick="() => Delete(t)">×</button>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(t.Description))
+        {
+            <div class="bd-desc">@t.Description</div>
+        }
+        @if (t.Tags.Count > 0 || !string.IsNullOrWhiteSpace(t.PriorityName))
+        {
+            <div class="bd-meta">
+                @foreach (var tag in t.Tags)
+                {
+                    <span class="bd-tag">@tag.TagName</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(t.PriorityName))
+                {
+                    <span class="bd-pri">@t.PriorityName</span>
+                }
+            </div>
+        }
+        <div class="bd-card-foot">
+            <span class="bd-due">@DueLabel(t)</span>
+            @if (Bucket(t) == "todo")
+            {
+                <button class="bd-act start" @onclick="() => Start(t)">start</button>
+            }
+            else if (Bucket(t) == "doing")
+            {
+                <button class="bd-act stop" @onclick="() => Stop(t)">stop</button>
+            }
+        </div>
+    </div>;
+
+    // ---- actions ----
+    private Task ToggleDone(TodoItemResponseDto t) => SetStatus(t, IsDone(t) ? "Pending" : "Done");
+    private Task Start(TodoItemResponseDto t) => SetStatus(t, "InProgress");
+    private Task Stop(TodoItemResponseDto t) => SetStatus(t, "Pending");
+
+    private async Task SetStatus(TodoItemResponseDto t, string status)
+    {
+        try
+        {
+            await Api.UpdateStatusAsync(t.Id, status);
+            await LoadAsync();
+        }
+        catch (Exception ex) { _error = $"Đổi trạng thái thất bại: {ex.Message}"; }
+    }
+
+    private async Task Delete(TodoItemResponseDto t)
+    {
+        try
+        {
+            await Api.DeleteAsync(t.Id);
+            await LoadAsync();
+        }
+        catch (Exception ex) { _error = $"Xóa thất bại: {ex.Message}"; }
+    }
+
+    // ---- composer ----
+    private void OpenComposer()
+    {
+        _dTitle = ""; _dDesc = ""; _dRef = "";
+        _dStart = null; _dDue = null; _dPriority = null; _dTags.Clear();
+        _showComposer = true;
+    }
+
+    private void CloseComposer() => _showComposer = false;
+
+    private void ToggleTag(int id)
+    {
+        if (!_dTags.Add(id)) _dTags.Remove(id);
+    }
+
+    private async Task SubmitComposer()
+    {
+        if (string.IsNullOrWhiteSpace(_dTitle)) return;
+        try
+        {
+            await Api.CreateAsync(new CreateTodoItemDto
+            {
+                TodoItemName = _dTitle.Trim(),
+                TodoItemDescription = _dDesc,
+                TagIds = _dTags.Count > 0 ? _dTags.ToList() : null,
+                StartDate = _dStart,
+                DueDate = _dDue,
+                PriorityId = _dPriority,
+                ReferenceNote = _dRef
+            });
+            _showComposer = false;
+            await LoadAsync();
+        }
+        catch (Exception ex) { _error = $"Tạo công việc thất bại: {ex.Message}"; }
+    }
+}

@@ -70,4 +70,10 @@ plus a task-detail modal and a task composer modal.
 ## Done log
 Completed & verified frontend work. Newest at the bottom. Append here when a task is done.
 
-_(nothing built yet — Board UI pending)_
+- 2026-07-12 — **Board view** (`Pages/Board.razor` + `.razor.css`, `@layout BlankLayout`).
+  Header (logo + tabs List/Board/Week/Stats + date + search + Add) · stats strip
+  (Hôm nay/Đang làm/Trễ hạn/Hoàn thành) · 4 horizontal groups Trễ hạn/Cần làm/Đang làm/Hoàn thành ·
+  card with done-toggle, start/stop, delete, tags, priority, due label · client-side search ·
+  quick-add (Enter in Cần làm) · composer modal (title/desc/dates/priority/tags/ref).
+  Wired to real API via `TodoApiService` (+ `GetTagsAsync`/`GetPrioritiesAsync`). Verified rendering with live data.
+  Deferred: task-detail modal, "→ today" reschedule, List/Week/Stats tabs (placeholder), streak stat (shows Done total instead).

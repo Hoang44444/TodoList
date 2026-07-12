@@ -9,5 +9,7 @@ namespace TodoList.Web.Services
         Task CreateAsync(CreateTodoItemDto dto);
         Task UpdateStatusAsync(int id, string status);
         Task DeleteAsync(int id);
+        Task<List<TagResponseDto>> GetTagsAsync();
+        Task<List<PriorityResponseDto>> GetPrioritiesAsync();
     }
 }
