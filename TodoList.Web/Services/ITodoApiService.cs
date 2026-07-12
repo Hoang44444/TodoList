@@ -6,6 +6,8 @@ namespace TodoList.Web.Services
     {
         Task<List<TodoItemResponseDto>> GetAllAsync();
         Task<TodoItemResponseDto?> GetByIdAsync(int id);
+        Task CreateAsync(CreateTodoItemDto dto);
+        Task UpdateStatusAsync(int id, string status);
         Task DeleteAsync(int id);
     }
 }

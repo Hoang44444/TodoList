@@ -160,7 +160,21 @@ namespace TodoList.Services
             todoItem.PriorityId = updateTodoItemDto.PriorityId;
             todoItem.ReferenceNote = updateTodoItemDto.ReferenceNote;
             todoItem.UpdatedAt = DateTime.UtcNow;
-            todoItem.Status = updateTodoItemDto.UpdateStatus ?? todoItem.Status;
+
+            _uow.TodoItemRepository.Update(todoItem);
+            await _uow.SaveChangesAsync(token);
+        }
+
+        public async Task UpdateStatusAsync(int todoItemId, TodoStatus status, CancellationToken token)
+        {
+            var todoItem = await _uow.TodoItemRepository.GetByIdWithTagsAsync(todoItemId, token);
+            if (todoItem == null)
+            {
+                throw new NotFoundException($"TodoItem with id: {todoItemId} not found");
+            }
+
+            todoItem.Status = status;
+            todoItem.UpdatedAt = DateTime.UtcNow;
 
             _uow.TodoItemRepository.Update(todoItem);
             await _uow.SaveChangesAsync(token);

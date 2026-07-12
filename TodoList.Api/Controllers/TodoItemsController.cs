@@ -31,6 +31,14 @@ namespace TodoList.Controllers
             return Ok(new { message = "Update Successfully" });
         }
 
+        // PUT /api/todoitems/{id}/status
+        [HttpPut("{todoItemId:int}/status")]
+        public async Task<IActionResult> UpdateStatus(int todoItemId, [FromBody] UpdateStatusDto dto, CancellationToken token)
+        {
+            await _service.UpdateStatusAsync(todoItemId, dto.Status, token);
+            return Ok(new { message = "Status updated" });
+        }
+
         // DELETE /api/todoitems/{id}
         [HttpDelete("{todoItemId:int}")]
         public async Task<IActionResult> Delete(int todoItemId, CancellationToken token)
