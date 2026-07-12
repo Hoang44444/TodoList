@@ -21,7 +21,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor", policy =>
     {
-        policy.WithOrigins("https://localhost:7223") // Thay đổi URL này thành URL của ứng dụng Blazor của bạn
+        policy.WithOrigins(
+                  "https://localhost:7269", // Blazor HTTPS
+                  "http://localhost:5161")  // Blazor HTTP
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
