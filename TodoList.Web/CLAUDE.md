@@ -77,3 +77,14 @@ Completed & verified frontend work. Newest at the bottom. Append here when a tas
   quick-add (Enter in Cần làm) · composer modal (title/desc/dates/priority/tags/ref).
   Wired to real API via `TodoApiService` (+ `GetTagsAsync`/`GetPrioritiesAsync`). Verified rendering with live data.
   Deferred: task-detail modal, "→ today" reschedule, List/Week/Stats tabs (placeholder), streak stat (shows Done total instead).
+
+- 2026-07-13 — **List view** (`Pages/Board.razor` `List` tab + `.bd-list-*`/`.bd-row-*` in `.razor.css`).
+  Vertical list grouped by the 4 status buckets (reuses `Columns()`); empty groups hidden.
+  Row = round done-toggle · title (strike+dim when done) · tags · priority · due label (mono, right) ·
+  start/stop by bucket · delete. Reuses `Bucket`/`Filtered`/`DueLabel` + all actions; client-side search shared with Board.
+  Also: Board quick-add input in "Cần làm" replaced by a `+ Thêm công việc` button that opens the composer
+  (removed `_quick`/`QuickKey`); composer no longer defaults Start/Due dates (empty).
+  Verified with 10 seeded tasks covering all 4 groups.
+  Deferred: task-detail modal, "→ today" reschedule, Week/Stats tabs.
+  Backend notes (not fixed): `POST /api/todoitems` returns 201 with no body and no `Location` header (can't get new id);
+  `priorities` table has duplicate "Urgent" rows (id 2 & 6).

@@ -82,6 +82,30 @@
             }
         </div>
     }
+    else if (_activeTab == "List")
+    {
+        var groups = Columns().Where(c => c.Tasks.Count > 0).ToList();
+        <div class="bd-list">
+            @if (groups.Count == 0)
+            {
+                <div class="bd-list-empty">Không có công việc nào</div>
+            }
+            @foreach (var col in groups)
+            {
+                <div class="bd-list-group">
+                    <div class="bd-list-head">
+                        <span class="bd-list-dot" style="background:@col.Color"></span>
+                        <span class="bd-list-label" style="color:@col.Color">@col.Label</span>
+                        <span class="bd-list-count">@col.Tasks.Count</span>
+                    </div>
+                    @foreach (var t in col.Tasks)
+                    {
+                        @Row(t)
+                    }
+                </div>
+            }
+        </div>
+    }
     else
     {
         <div class="bd-loading">Tab "@_activeTab" đang phát triển — sẽ làm ở bước sau.</div>
@@ -284,6 +308,30 @@
                 <button class="bd-act stop" @onclick="() => Stop(t)">stop</button>
             }
         </div>
+    </div>;
+
+    // ---- list row template ----
+    private RenderFragment Row(TodoItemResponseDto t) =>@<div class="bd-row @Bucket(t)">
+        <button class="bd-check @(IsDone(t) ? "done" : "")" title="Đổi hoàn thành" @onclick="() => ToggleDone(t)">@(IsDone(t) ? "✓" : "")</button>
+        <span class="bd-row-title @(IsDone(t) ? "done" : "")">@t.TodoItemName</span>
+        @foreach (var tag in t.Tags)
+        {
+            <span class="bd-tag">@tag.TagName</span>
+        }
+        @if (!string.IsNullOrWhiteSpace(t.PriorityName))
+        {
+            <span class="bd-pri">@t.PriorityName</span>
+        }
+        <span class="bd-row-due">@DueLabel(t)</span>
+        @if (Bucket(t) == "todo")
+        {
+            <button class="bd-act start" @onclick="() => Start(t)">start</button>
+        }
+        else if (Bucket(t) == "doing")
+        {
+            <button class="bd-act stop" @onclick="() => Stop(t)">stop</button>
+        }
+        <button class="bd-del" title="Xóa" @onclick="() => Delete(t)">×</button>
     </div>;
 
     // ---- actions ----
