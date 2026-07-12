@@ -364,16 +364,17 @@
 
 /* quick add + empty */
 .bd-quick-add {
-    width: 100%;
+    width: 260px;
+    flex: none;
     background: transparent;
     border: 1.5px dashed rgba(255, 255, 255, .14);
     border-radius: 9px;
     color: rgba(255, 255, 255, .55);
-    padding: 10px 14px;
+    padding: 11px 13px;
     font-family: inherit;
     font-size: 12.5px;
     cursor: pointer;
-    text-align: left;
+    text-align: center;
     transition: border-color .15s, color .15s;
 }
 
