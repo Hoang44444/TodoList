@@ -99,3 +99,21 @@ Completed & verified frontend work. Newest at the bottom. Append here when a tas
   Tasks with no due date, or due outside the current week, don't appear (by design — weekly agenda).
   Verified with seeded tasks incl. 9 stacked on today to confirm column scroll.
   Deferred: prev/next-week navigation, drag-to-reschedule, task-detail modal, Stats tab.
+
+- 2026-07-13 — **Stats view** (`Pages/Board.razor` `Stats` tab + `.bd-stat*`/`.bd-dist*`/`.bd-tagstat*`/`.bd-ov*` in `.razor.css`).
+  Read-only 2×2 grid, **only real computable data** (no fake history — API has no completion-date field):
+  ① **Tiến độ hôm nay** — big % + segment strip (1 seg per task due today, green=done) + `X/Y`.
+  ② **Phân bố trạng thái theo tuần** — 4 bars (Trễ hạn/Cần làm/Đang làm/Hoàn thành) counting only tasks whose
+     `DueDate` is in the current week; shows the week range `Tuần dd/MM → dd/MM`. Helper `BucketedWeek()`.
+  ③ **Theo tag** — one row per tag, sorted by most-used (`OrderByDescending(Total)`); each row a distinct color
+     from `TagColors` (prototype palette, no new accents) — dot + name + `done/total` + colored progress bar.
+  ④ **Tổng quan** — Đã hoàn thành / Trễ hạn / Tỉ lệ hoàn thành %, then an explicit **list of overdue tasks**
+     (name + due, red) via `OverdueTasks()`; falls back to `OverviewNote` when none overdue.
+  Helpers: `TotalCount`, `Bucketed`/`BucketedWeek`, `TodayPct`, `DonePct`, `TodayTasks`, `TagStats()`/`TagStat`,
+  `OverdueTasks()`, `OverviewNote`; refactored `WeekStart()`/`WeekEnd()` out of `WeekDays()` (shared with Week tab).
+  Note: `.bd-stats-*` prefix chosen so it doesn't collide with the header strip's `.bd-stats`/`.bd-stat`.
+  Dropped from prototype (need per-day completion history the API lacks): "last 7 days" chart, streak.
+  Deferred: time-range filter, real time-series once API exposes a completed-at date.
+
+All four tabs (List/Board/Week/Stats) are now built. Remaining app-wide deferrals: task-detail modal, "→ today"
+reschedule, prev/next-week nav, drag-to-reschedule.

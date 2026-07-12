@@ -130,6 +130,132 @@
             }
         </div>
     }
+    else if (_activeTab == "Stats")
+    {
+        <div class="bd-stats-grid">
+
+            @* ① Tiến độ hôm nay *@
+            <div class="bd-stat-card">
+                <div class="bd-stat-card-label">Tiến độ hôm nay</div>
+                <div class="bd-stat-pct">@TodayPct<span class="bd-stat-pct-sign">%</span></div>
+                <div class="bd-seg-row">
+                    @if (TodayTotal == 0)
+                    {
+                        <span class="bd-stat-hint">Không có việc hạn hôm nay</span>
+                    }
+                    else
+                    {
+                        @foreach (var t in TodayTasks)
+                        {
+                            <span class="bd-seg @(IsDone(t) ? "done" : "")"></span>
+                        }
+                    }
+                </div>
+                <div class="bd-stat-sub2">@TodayDone / @TodayTotal việc hoàn thành</div>
+            </div>
+
+            @* ② Phân bố trạng thái theo tuần *@
+            <div class="bd-stat-card">
+                <div class="bd-stat-card-label">Phân bố trạng thái theo tuần</div>
+                <div class="bd-stat-range">Tuần @WeekStart().ToString("dd/MM") → @WeekEnd().ToString("dd/MM")</div>
+                @{
+                    var dist = new (string Label, string Color, int Count)[]
+                    {
+                        ("Trễ hạn", "#f28b8b", BucketedWeek("overdue")),
+                        ("Cần làm", "rgba(255,255,255,.55)", BucketedWeek("todo")),
+                        ("Đang làm", "#a996f2", BucketedWeek("doing")),
+                        ("Hoàn thành", "#7bd8b0", BucketedWeek("done")),
+                    };
+                    var maxD = Math.Max(1, dist.Max(x => x.Count));
+                }
+                <div class="bd-dist">
+                    @foreach (var d in dist)
+                    {
+                        <div class="bd-dist-row">
+                            <span class="bd-dist-label">@d.Label</span>
+                            <div class="bd-dist-track">
+                                <div class="bd-dist-fill" style="width:@(d.Count * 100 / maxD)%;background:@d.Color"></div>
+                            </div>
+                            <span class="bd-dist-count">@d.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* ③ Theo tag *@
+            <div class="bd-stat-card">
+                <div class="bd-stat-card-label">Theo tag</div>
+                @{
+                    var tagStats = TagStats();
+                }
+                @if (tagStats.Count == 0)
+                {
+                    <span class="bd-stat-hint">Chưa có dữ liệu tag</span>
+                }
+                else
+                {
+                    <div class="bd-tagstat-list">
+                        @for (var i = 0; i < tagStats.Count; i++)
+                        {
+                            var ts = tagStats[i];
+                            var color = TagColors[i % TagColors.Length];
+                            <div class="bd-tagstat">
+                                <div class="bd-tagstat-head">
+                                    <span class="bd-tagstat-dot" style="background:@color"></span>
+                                    <span class="bd-tagstat-name">@ts.Name</span>
+                                    <span class="bd-tagstat-count">@ts.Done/@ts.Total</span>
+                                </div>
+                                <div class="bd-tagstat-track">
+                                    <div class="bd-tagstat-fill" style="width:@(ts.Total == 0 ? 0 : ts.Done * 100 / ts.Total)%;background:@color"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            @* ④ Tổng quan *@
+            <div class="bd-stat-card">
+                <div class="bd-stat-card-label">Tổng quan</div>
+                <div class="bd-overview">
+                    <div class="bd-ov-item">
+                        <div class="bd-ov-num green">@DoneTotal</div>
+                        <div class="bd-ov-cap">Đã hoàn thành</div>
+                    </div>
+                    <div class="bd-ov-item">
+                        <div class="bd-ov-num red">@OverdueCount</div>
+                        <div class="bd-ov-cap">Trễ hạn</div>
+                    </div>
+                    <div class="bd-ov-item">
+                        <div class="bd-ov-num purple">@DonePct%</div>
+                        <div class="bd-ov-cap">Tỉ lệ hoàn thành</div>
+                    </div>
+                </div>
+                @{
+                    var overdueList = OverdueTasks().ToList();
+                }
+                @if (overdueList.Count == 0)
+                {
+                    <div class="bd-ov-note">@OverviewNote</div>
+                }
+                else
+                {
+                    <div class="bd-ov-overdue">
+                        <div class="bd-ov-overdue-label">Việc đang trễ hạn</div>
+                        @foreach (var t in overdueList)
+                        {
+                            <div class="bd-ov-overdue-item">
+                                <span class="bd-ov-overdue-dot"></span>
+                                <span class="bd-ov-overdue-name">@t.TodoItemName</span>
+                                <span class="bd-ov-overdue-due">@t.DueDate?.ToString("dd/MM")</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+        </div>
+    }
     else
     {
         <div class="bd-loading">Tab "@_activeTab" đang phát triển — sẽ làm ở bước sau.</div>
@@ -287,6 +413,61 @@
     private int OverdueCount => (_todos ?? new()).Count(IsOverdue);
     private int DoneTotal => (_todos ?? new()).Count(IsDone);
 
+    // ---- stats view ----
+    private int TotalCount => (_todos ?? new()).Count;
+    private int Bucketed(string b) => (_todos ?? new()).Count(t => Bucket(t) == b);
+
+    // Phân bố theo tuần: chỉ việc có hạn nằm trong tuần hiện tại
+    private int BucketedWeek(string b)
+    {
+        var start = WeekStart();
+        var end = WeekEnd();
+        return (_todos ?? new()).Count(t =>
+            t.DueDate.HasValue
+            && t.DueDate.Value.Date >= start && t.DueDate.Value.Date <= end
+            && Bucket(t) == b);
+    }
+    private int TodayPct => TodayTotal == 0 ? 0 : (int)Math.Round(TodayDone * 100.0 / TodayTotal);
+    private int DonePct => TotalCount == 0 ? 0 : (int)Math.Round(DoneTotal * 100.0 / TotalCount);
+    private IEnumerable<TodoItemResponseDto> TodayTasks
+        => (_todos ?? new()).Where(t => t.DueDate?.Date == Today);
+
+    // Bảng màu cho tag — lấy từ palette của prototype (không phát sinh màu mới)
+    private static readonly string[] TagColors =
+        { "#a996f2", "#8ab4ff", "#7bd8b0", "#e8c97a", "#f2a2c0", "#7fd4e0" };
+
+    private IEnumerable<TodoItemResponseDto> OverdueTasks()
+        => (_todos ?? new()).Where(IsOverdue).OrderBy(t => t.DueDate);
+
+    private record TagStat(string Name, int Done, int Total);
+
+    private List<TagStat> TagStats()
+    {
+        var items = _todos ?? new();
+        var stats = new List<TagStat>();
+        foreach (var tg in _tags.Where(x => x.Id.HasValue))
+        {
+            var withTag = items.Where(t => t.Tags.Any(x => x.Id == tg.Id)).ToList();
+            if (withTag.Count > 0)
+                stats.Add(new TagStat(tg.TagName, withTag.Count(IsDone), withTag.Count));
+        }
+        var noTag = items.Where(t => t.Tags.Count == 0).ToList();
+        if (noTag.Count > 0)
+            stats.Add(new TagStat("Không tag", noTag.Count(IsDone), noTag.Count));
+        return stats.OrderByDescending(s => s.Total).ToList();
+    }
+
+    private string OverviewNote
+    {
+        get
+        {
+            if (TotalCount == 0) return "Chưa có công việc nào — thêm việc để bắt đầu.";
+            if (OverdueCount > 0) return $"Còn {OverdueCount} việc trễ hạn — xử lý sớm nhé.";
+            if (DoneTotal == TotalCount) return "Tất cả đã xong — tuyệt vời!";
+            return "Đang đúng tiến độ, giữ nhịp nhé.";
+        }
+    }
+
     private static string DueLabel(TodoItemResponseDto t)
     {
         if (IsDone(t)) return "✓";
@@ -359,12 +540,16 @@
     </div>;
 
     // ---- week helpers ----
-    private static IEnumerable<DateTime> WeekDays()
+    private static DateTime WeekStart()
     {
         var diff = ((int)Today.DayOfWeek + 6) % 7; // Thứ Hai = 0
-        var monday = Today.AddDays(-diff);
-        return Enumerable.Range(0, 7).Select(i => monday.AddDays(i));
+        return Today.AddDays(-diff);
     }
+
+    private static DateTime WeekEnd() => WeekStart().AddDays(6);
+
+    private static IEnumerable<DateTime> WeekDays()
+        => Enumerable.Range(0, 7).Select(i => WeekStart().AddDays(i));
 
     private static string DowVi(DateTime d) => d.DayOfWeek switch
     {
