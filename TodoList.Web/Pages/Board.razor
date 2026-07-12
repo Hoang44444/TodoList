@@ -267,7 +267,7 @@
         <div class="bd-overlay" @onclick="CloseComposer">
             <div class="bd-modal" @onclick:stopPropagation="true">
                 <div class="bd-modal-head">
-                    <div class="bd-modal-title">Công việc mới</div>
+                    <div class="bd-modal-title">@(_editingId is null ? "Công việc mới" : "Sửa công việc")</div>
                     <button class="bd-x" @onclick="CloseComposer">×</button>
                 </div>
 
@@ -310,12 +310,20 @@
                     }
                 </div>
 
-                <label class="bd-label">Tham chiếu</label>
-                <input class="bd-input" placeholder="Ghi chú / link…" @bind="_dRef" @bind:event="oninput" />
+                <label class="bd-label">Tham chiếu (link)</label>
+                <input class="bd-input" type="url" placeholder="Dán link — vd https://..." @bind="_dRef" @bind:event="oninput" />
+                @if (IsHttpUrl(_dRef))
+                {
+                    <a class="bd-ref-open" href="@_dRef.Trim()" target="_blank" rel="noopener noreferrer">↗ Mở liên kết</a>
+                }
 
                 <div class="bd-modal-foot">
+                    @if (_editingId is not null)
+                    {
+                        <button class="bd-btn danger" @onclick="DeleteEditing">Xóa</button>
+                    }
                     <button class="bd-btn ghost" @onclick="CloseComposer">Hủy</button>
-                    <button class="bd-btn primary" @onclick="SubmitComposer" disabled="@(string.IsNullOrWhiteSpace(_dTitle))">Thêm</button>
+                    <button class="bd-btn primary" @onclick="SubmitComposer" disabled="@(string.IsNullOrWhiteSpace(_dTitle))">@(_editingId is null ? "Thêm" : "Lưu")</button>
                 </div>
             </div>
         </div>
@@ -336,6 +344,7 @@
 
     // composer draft
     private bool _showComposer;
+    private int? _editingId;          // null = tạo mới, có giá trị = đang sửa
     private string _dTitle = "";
     private string _dDesc = "";
     private DateTime? _dStart;
@@ -482,7 +491,7 @@
     private RenderFragment Card(TodoItemResponseDto t) =>@<div class="bd-card @Bucket(t)">
         <div class="bd-card-top">
             <button class="bd-check @(IsDone(t) ? "done" : "")" title="Đổi hoàn thành" @onclick="() => ToggleDone(t)">@(IsDone(t) ? "✓" : "")</button>
-            <div class="bd-card-title @(IsDone(t) ? "done" : "")">@t.TodoItemName</div>
+            <div class="bd-card-title bd-title-click @(IsDone(t) ? "done" : "")" title="Bấm để sửa" @onclick="() => OpenEdit(t)">@t.TodoItemName</div>
             <button class="bd-del" title="Xóa" @onclick="() => Delete(t)">×</button>
         </div>
         @if (!string.IsNullOrWhiteSpace(t.Description))
@@ -518,7 +527,7 @@
     // ---- list row template ----
     private RenderFragment Row(TodoItemResponseDto t) =>@<div class="bd-row @Bucket(t)">
         <button class="bd-check @(IsDone(t) ? "done" : "")" title="Đổi hoàn thành" @onclick="() => ToggleDone(t)">@(IsDone(t) ? "✓" : "")</button>
-        <span class="bd-row-title @(IsDone(t) ? "done" : "")">@t.TodoItemName</span>
+        <span class="bd-row-title bd-title-click @(IsDone(t) ? "done" : "")" title="Bấm để sửa" @onclick="() => OpenEdit(t)">@t.TodoItemName</span>
         @foreach (var tag in t.Tags)
         {
             <span class="bd-tag">@tag.TagName</span>
@@ -572,7 +581,7 @@
     private RenderFragment WeekCard(TodoItemResponseDto t) =>@<div class="bd-week-card @Bucket(t)">
         <div class="bd-week-card-top">
             <button class="bd-check @(IsDone(t) ? "done" : "")" title="Đổi hoàn thành" @onclick="() => ToggleDone(t)">@(IsDone(t) ? "✓" : "")</button>
-            <span class="bd-week-card-title @(IsDone(t) ? "done" : "")">@t.TodoItemName</span>
+            <span class="bd-week-card-title bd-title-click @(IsDone(t) ? "done" : "")" title="Bấm để sửa" @onclick="() => OpenEdit(t)">@t.TodoItemName</span>
             <button class="bd-del" title="Xóa" @onclick="() => Delete(t)">×</button>
         </div>
         @if (t.Tags.Count > 0 || WeekTime(t).Length > 0)
@@ -616,10 +625,42 @@
     }
 
     // ---- composer ----
+    private static bool IsHttpUrl(string s)
+        => Uri.TryCreate(s?.Trim(), UriKind.Absolute, out var u)
+           && (u.Scheme == Uri.UriSchemeHttp || u.Scheme == Uri.UriSchemeHttps);
+
+    private async Task DeleteEditing()
+    {
+        if (_editingId is not int id) return;
+        try
+        {
+            await Api.DeleteAsync(id);
+            _showComposer = false;
+            await LoadAsync();
+        }
+        catch (Exception ex) { _error = $"Xóa thất bại: {ex.Message}"; }
+    }
+
     private void OpenComposer()
     {
+        _editingId = null;
         _dTitle = ""; _dDesc = ""; _dRef = "";
         _dStart = null; _dDue = null; _dPriority = null; _dTags.Clear();
+        _showComposer = true;
+    }
+
+    private void OpenEdit(TodoItemResponseDto t)
+    {
+        _editingId = t.Id;
+        _dTitle = t.TodoItemName;
+        _dDesc = t.Description;
+        _dRef = t.ReferenceNote;
+        _dStart = t.StartDate;
+        _dDue = t.DueDate;
+        _dPriority = t.PriorityId;
+        _dTags.Clear();
+        foreach (var tg in t.Tags.Where(x => x.Id.HasValue))
+            _dTags.Add(tg.Id!.Value);
         _showComposer = true;
     }
 
@@ -635,7 +676,7 @@
         if (string.IsNullOrWhiteSpace(_dTitle)) return;
         try
         {
-            await Api.CreateAsync(new CreateTodoItemDto
+            var dto = new CreateTodoItemDto
             {
                 TodoItemName = _dTitle.Trim(),
                 TodoItemDescription = _dDesc,
@@ -644,10 +685,19 @@
                 DueDate = _dDue,
                 PriorityId = _dPriority,
                 ReferenceNote = _dRef
-            });
+            };
+            if (_editingId is int id)
+                await Api.UpdateAsync(id, dto);
+            else
+                await Api.CreateAsync(dto);
             _showComposer = false;
             await LoadAsync();
         }
-        catch (Exception ex) { _error = $"Tạo công việc thất bại: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            _error = _editingId is null
+                ? $"Tạo công việc thất bại: {ex.Message}"
+                : $"Lưu thay đổi thất bại: {ex.Message}";
+        }
     }
 }

@@ -5,7 +5,7 @@ namespace TodoList.Services
 {
     public interface ITodoItemService
     {
-        Task CreateTodoItemAsync(CreateTodoItemDto createTodoItemDto, CancellationToken token);
+        Task<TodoItemResponseDto> CreateTodoItemAsync(CreateTodoItemDto createTodoItemDto, CancellationToken token);
         Task UpdateTodoItemAsync(int todoItemId, UpdateTodoItemDto updateTodoItemDto, CancellationToken token);
         Task UpdateStatusAsync(int todoItemId, TodoStatus status, CancellationToken token);
         Task DeleteTodoItemAsync(int todoItemId, CancellationToken token);

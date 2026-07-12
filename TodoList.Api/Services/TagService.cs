@@ -12,7 +12,7 @@ namespace TodoList.Services
         {
             _uow = uow;
         }
-        public async Task CreateTagAsync(CreateTagDto createTagDto, CancellationToken token)
+        public async Task<TagResponseDto> CreateTagAsync(CreateTagDto createTagDto, CancellationToken token)
         {
             var newTag = new Tag
             {
@@ -22,6 +22,12 @@ namespace TodoList.Services
 
             _uow.TagRepository.Add(newTag);
             await _uow.SaveChangesAsync(token);
+
+            return new TagResponseDto
+            {
+                Id = newTag.Id,
+                TagName = newTag.TagName
+            };
         }
 
         public async Task UpdateTagAsync(int tagId, UpdateTagDto updateTagDto, CancellationToken token)

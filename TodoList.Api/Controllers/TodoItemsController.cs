@@ -19,8 +19,8 @@ namespace TodoList.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTodoItemDto dto, CancellationToken token)
         {
-            await _service.CreateTodoItemAsync(dto, token);
-            return StatusCode(StatusCodes.Status201Created);
+            var created = await _service.CreateTodoItemAsync(dto, token);
+            return CreatedAtAction(nameof(GetById), new { todoItemId = created.Id }, created);
         }
 
         // PUT /api/todoitems/{id}

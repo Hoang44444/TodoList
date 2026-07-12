@@ -117,3 +117,16 @@ Completed & verified frontend work. Newest at the bottom. Append here when a tas
 
 All four tabs (List/Board/Week/Stats) are now built. Remaining app-wide deferrals: task-detail modal, "→ today"
 reschedule, prev/next-week nav, drag-to-reschedule.
+
+- 2026-07-13 — **Edit task (click-to-edit) + reference link**.
+  Clicking a task title anywhere (Board card / List row / Week card — class `bd-title-click`) opens the
+  **composer in edit mode directly** (no separate view modal — an earlier read-only detail modal was built
+  then removed per feedback: "nhấn vào là sửa được luôn").
+  Composer is dual-mode via `_editingId` (null=create/`Thêm`, set=edit/`Lưu`); `OpenEdit(t)` pre-fills all
+  drafts; `SubmitComposer` branches `CreateAsync` vs new `UpdateAsync(id,dto)` → `PUT /api/todoitems/{id}`
+  (body reuses `CreateTodoItemDto`; API's `UpdateTodoItemDto` has the same shape). PUT verified live (200).
+  Edit mode also shows a red **Xóa** button (`DeleteEditing()`); create mode doesn't.
+  Reference field is now a `type="url"` link input; when it holds a valid http/https URL a "↗ Mở liên kết"
+  anchor appears (`target=_blank rel=noopener`, opens immediately). `IsHttpUrl()` guards http/https only
+  (blocks `javascript:` etc.). New CSS: `.bd-title-click`, `.bd-btn.danger`, `.bd-ref-open`.
+  Deferred: adding a time field + multi-link references in the composer.

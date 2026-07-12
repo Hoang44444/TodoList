@@ -17,8 +17,8 @@ namespace TodoList.Controllers
         [HttpPost]
         public async Task<IActionResult> CreatePriority([FromBody] CreatePriorityDto createPriorityDto, CancellationToken token)
         {
-            await _priorityService.CreatePriorityAsync(createPriorityDto, token);
-            return Ok(new { message = "Create Successfully" });
+            var created = await _priorityService.CreatePriorityAsync(createPriorityDto, token);
+            return CreatedAtAction(nameof(GetPriorityById), new { priorityId = created.Id }, created);
         }
 
         [HttpPut("{priorityId:int}")]

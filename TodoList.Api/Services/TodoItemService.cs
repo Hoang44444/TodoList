@@ -16,7 +16,7 @@ namespace TodoList.Services
             _uow = uow;
         }
 
-        public async Task CreateTodoItemAsync(CreateTodoItemDto createTodoItemDto, CancellationToken token)
+        public async Task<TodoItemResponseDto> CreateTodoItemAsync(CreateTodoItemDto createTodoItemDto, CancellationToken token)
         {
             var tags = await _uow.TagRepository.GetAllAsync(token);
             foreach (var tagId in createTodoItemDto.TagIds ?? new List<int>())
@@ -58,6 +58,8 @@ namespace TodoList.Services
             };
             _uow.TodoItemRepository.Add(newTodoItem);
             await _uow.SaveChangesAsync(token);
+
+            return await GetTodoItemByIdAsync(newTodoItem.Id, token);
 
         }
 
