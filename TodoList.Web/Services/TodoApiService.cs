@@ -19,6 +19,18 @@ namespace TodoList.Web.Services
         public async Task<TodoItemResponseDto?> GetByIdAsync(int id)
             => await _http.GetFromJsonAsync<TodoItemResponseDto>($"api/todoitems/{id}");
 
+        public async Task CreateAsync(CreateTodoItemDto dto)
+        {
+            var res = await _http.PostAsJsonAsync("api/todoitems", dto);
+            res.EnsureSuccessStatusCode();
+        }
+
+        public async Task UpdateStatusAsync(int id, string status)
+        {
+            var res = await _http.PutAsJsonAsync($"api/todoitems/{id}/status", new { status });
+            res.EnsureSuccessStatusCode();
+        }
+
         public async Task DeleteAsync(int id)
             => await _http.DeleteAsync($"api/todoitems/{id}");
     }

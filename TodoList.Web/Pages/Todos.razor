@@ -1,0 +1,85 @@
+@page "/todos"
+@inject ITodoApiService TodoApi
+
+<PageTitle>Todos</PageTitle>
+
+<h1>Danh sách công việc</h1>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_todos is null)
+{
+    <p><em>Đang tải...</em></p>
+}
+else if (_todos.Count == 0)
+{
+    <p>Chưa có công việc nào.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tên</th>
+                <th>Trạng thái</th>
+                <th>Ưu tiên</th>
+                <th>Tags</th>
+                <th>Hạn</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var todo in _todos)
+            {
+                <tr>
+                    <td>@todo.TodoItemName</td>
+                    <td>@todo.Status</td>
+                    <td>@(todo.PriorityName ?? "-")</td>
+                    <td>@string.Join(", ", todo.Tags.Select(t => t.TagName))</td>
+                    <td>@(todo.DueDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(todo.Id)">Xóa</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<TodoItemResponseDto>? _todos;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _error = null;
+            _todos = await TodoApi.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Không tải được dữ liệu: {ex.Message}";
+        }
+    }
+
+    private async Task Delete(int id)
+    {
+        try
+        {
+            await TodoApi.DeleteAsync(id);
+            await LoadAsync(); // tải lại danh sách sau khi xóa
+        }
+        catch (Exception ex)
+        {
+            _error = $"Xóa thất bại: {ex.Message}";
+        }
+    }
+}
