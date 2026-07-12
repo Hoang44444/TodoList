@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#131316}
+@keyframes ovFade{from{opacity:0}}
+@keyframes ovPop{from{opacity:0;transform:scale(.96) translateY(8px)}}
+::placeholder{color:rgba(255,255,255,.3)}
+::-webkit-scrollbar{height:8px;width:8px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+::-webkit-scrollbar-track{background:transparent}
+</style>
+</helmet>
+
+<div style="height:100vh;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:22px 30px;background:#131316;color:#ececf1;font-family:'Instrument Sans',system-ui,sans-serif;overflow:hidden">
+
+  <!-- header -->
+  <div style="display:flex;align-items:center;gap:14px;flex:none">
+    <div style="width:26px;height:26px;border-radius:7px;background:#a996f2;display:flex;align-items:center;justify-content:center;color:#0c0c0e;font-weight:700;font-size:14px">✓</div>
+    <div style="font-weight:600;font-size:15px">studylist</div>
+    <div style="display:flex;gap:2px;background:rgba(255,255,255,.06);border-radius:8px;padding:3px;margin-left:18px">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <div onClick="{{ t.onClick }}" style="padding:5px 14px;border-radius:6px;font-size:12.5px;cursor:pointer;background:{{ t.bg }};color:{{ t.color }};font-weight:{{ t.weight }};user-select:none">{{ t.name }}</div>
+      </sc-for>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,.5);white-space:nowrap;flex:none">{{ dateLabel }}</div>
+      <input value="{{ search }}" onChange="{{ onSearch }}" placeholder="⌕ Search tasks" style="width:170px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:7px 12px;font-family:inherit;font-size:12.5px;color:#ececf1;outline:none">
+      <div onClick="{{ openComposer }}" style="padding:7px 14px;border-radius:7px;background:#a996f2;color:#0c0c0e;font-size:12.5px;font-weight:600;cursor:pointer;user-select:none;white-space:nowrap;flex:none" style-hover="background:#bcaef7">+ Add task</div>
+    </div>
+  </div>
+
+  <!-- stats strip -->
+  <sc-if value="{{ showStrip }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;flex:none">
+      <div style="background:#1a1a1f;border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:11px 16px"><div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em">Today</div><div style="font-size:20px;font-weight:600;margin-top:2px">{{ todayDoneLabel }} <span style="font-size:12px;font-weight:400;color:rgba(255,255,255,.4)">{{ todayTotalLabel }}</span></div></div>
+      <div style="background:#1a1a1f;border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:11px 16px"><div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em">In progress</div><div style="font-size:20px;font-weight:600;margin-top:2px;color:#a996f2">{{ doingCount }}</div></div>
+      <div style="background:#1a1a1f;border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:11px 16px"><div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em">Overdue</div><div style="font-size:20px;font-weight:600;margin-top:2px;color:#f28b8b">{{ overdueCount }}</div></div>
+      <div style="background:#1a1a1f;border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:11px 16px"><div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em">Streak</div><div style="font-size:20px;font-weight:600;margin-top:2px">{{ streak }} <span style="font-size:12px;font-weight:400;color:rgba(255,255,255,.4)">days</span></div></div>
+    </div>
+  </sc-if>
+
+  <!-- BOARD -->
+  <sc-if value="{{ isBoard }}" hint-placeholder-val="{{ true }}">
+    <div data-screen-label="Board view" style="display:flex;flex-direction:column;gap:14px;flex:1;min-height:0;overflow-y:auto;padding-right:4px">
+
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-height:max-content">
+        <div style="display:flex;align-items:center;gap:8px;flex:none"><span style="width:8px;height:8px;border-radius:50%;background:#f28b8b"></span><span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#f28b8b">Overdue</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.35)">{{ overdueRowCount }}</span></div>
+        <div style="display:flex;gap:10px;flex:1;min-height:118px;overflow-x:auto;align-items:stretch">
+          <sc-for list="{{ overdueTasks }}" as="item" hint-placeholder-count="1">
+            <div style="width:232px;flex:none;box-sizing:border-box;background:{{ item.bg }};border:1px solid {{ item.borderColor }};border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;gap:7px" style-hover="border-color:rgba(242,139,139,.6)">
+              <div style="display:flex;align-items:flex-start;gap:9px">
+                <div onClick="{{ item.onToggle }}" title="Mark done" style="width:17px;height:17px;border-radius:50%;border:1.5px solid rgba(242,139,139,.6);flex:none;cursor:pointer;margin-top:1px;box-sizing:border-box" style-hover="border-color:#7bd8b0;background:rgba(123,216,176,.15)"></div>
+                <div onClick="{{ item.onOpen }}" style="font-size:13.5px;line-height:1.35;flex:1;cursor:pointer" style-hover="color:#cabdf7">{{ item.title }}</div>
+                <div onClick="{{ item.onDelete }}" title="Delete" style="width:18px;height:18px;border-radius:5px;color:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex:none" style-hover="color:#f28b8b;background:rgba(242,139,139,.12)">×</div>
+              </div>
+              <sc-if value="{{ item.hasDesc }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;line-height:1.4;color:rgba(255,255,255,.45);max-height:32px;overflow:hidden">{{ item.desc }}</div></sc-if>
+              <sc-if value="{{ item.hasLinks }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap"><sc-for list="{{ item.linkItems }}" as="ln" hint-placeholder-count="1"><a href="{{ ln.href }}" target="_blank" rel="noreferrer" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:#8ab4ff;background:rgba(138,180,255,.1);border:1px solid rgba(138,180,255,.25);padding:2px 7px;border-radius:4px;text-decoration:none;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" style-hover="background:rgba(138,180,255,.2)">↗ {{ ln.label }}</a></sc-for></div></sc-if>
+              <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+                <sc-if value="{{ item.hasProject }}" hint-placeholder-val="{{ false }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ item.projectColor }};flex:none"></span><span style="font-size:10.5px;color:rgba(255,255,255,.45)">{{ item.projectName }}</span></sc-if>
+                <sc-if value="{{ item.hasPri }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;color:{{ item.priColor }}">{{ item.priLabel }}</span></sc-if>
+              </div>
+              <div style="display:flex;gap:7px;align-items:center;margin-top:auto">
+                <span style="font-size:10.5px;font-family:'JetBrains Mono',monospace;color:#f28b8b">{{ item.dueLabel }}</span>
+                <span onClick="{{ item.onToday }}" title="Reschedule to today" style="margin-left:auto;font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.55);cursor:pointer;user-select:none" style-hover="background:rgba(255,255,255,.08)">→ today</span>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ overdueEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="width:280px;border:1.5px dashed rgba(255,255,255,.12);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,.32)">Nothing overdue — all clear</div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-height:max-content">
+        <div style="display:flex;align-items:center;gap:8px;flex:none"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(255,255,255,.45);box-sizing:border-box"></span><span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.6)">To do</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.35)">{{ todoCount }}</span></div>
+        <div style="display:flex;gap:10px;flex:1;min-height:118px;overflow-x:auto;align-items:stretch">
+          <sc-for list="{{ todoTasks }}" as="item" hint-placeholder-count="3">
+            <div style="width:232px;flex:none;box-sizing:border-box;background:{{ item.bg }};border:1px solid {{ item.borderColor }};border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;gap:7px" style-hover="border-color:rgba(255,255,255,.22)">
+              <div style="display:flex;align-items:flex-start;gap:9px">
+                <div onClick="{{ item.onToggle }}" title="Mark done" style="width:17px;height:17px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);flex:none;cursor:pointer;margin-top:1px;box-sizing:border-box" style-hover="border-color:#7bd8b0;background:rgba(123,216,176,.15)"></div>
+                <div onClick="{{ item.onOpen }}" style="font-size:13.5px;line-height:1.35;flex:1;cursor:pointer" style-hover="color:#cabdf7">{{ item.title }}</div>
+                <div onClick="{{ item.onDelete }}" title="Delete" style="width:18px;height:18px;border-radius:5px;color:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex:none" style-hover="color:#f28b8b;background:rgba(242,139,139,.12)">×</div>
+              </div>
+              <sc-if value="{{ item.hasDesc }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;line-height:1.4;color:rgba(255,255,255,.45);max-height:32px;overflow:hidden">{{ item.desc }}</div></sc-if>
+              <sc-if value="{{ item.hasLinks }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap"><sc-for list="{{ item.linkItems }}" as="ln" hint-placeholder-count="1"><a href="{{ ln.href }}" target="_blank" rel="noreferrer" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:#8ab4ff;background:rgba(138,180,255,.1);border:1px solid rgba(138,180,255,.25);padding:2px 7px;border-radius:4px;text-decoration:none;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" style-hover="background:rgba(138,180,255,.2)">↗ {{ ln.label }}</a></sc-for></div></sc-if>
+              <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+                <sc-if value="{{ item.hasProject }}" hint-placeholder-val="{{ false }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ item.projectColor }};flex:none"></span><span style="font-size:10.5px;color:rgba(255,255,255,.45)">{{ item.projectName }}</span></sc-if>
+                <sc-if value="{{ item.hasOverdue }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;color:#f28b8b;background:rgba(242,139,139,.12);padding:1px 6px;border-radius:4px">overdue</span></sc-if>
+                <sc-if value="{{ item.hasPri }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;color:{{ item.priColor }}">{{ item.priLabel }}</span></sc-if>
+              </div>
+              <div style="display:flex;gap:7px;align-items:center;margin-top:auto">
+                <span style="font-size:10.5px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,.5)">{{ item.dueLabel }}</span>
+                <span onClick="{{ item.onStart }}" style="margin-left:auto;font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;border:1px solid rgba(169,150,242,.4);color:#a996f2;cursor:pointer;user-select:none" style-hover="background:rgba(169,150,242,.15)">start</span>
+              </div>
+            </div>
+          </sc-for>
+          <input value="{{ quick }}" onChange="{{ onQuickChange }}" onKeyDown="{{ onQuickKey }}" placeholder="+ quick add — press Enter" style="width:180px;flex:none;background:transparent;border:1.5px dashed rgba(255,255,255,.14);border-radius:9px;color:#ececf1;padding:0 14px;font-family:inherit;font-size:12.5px;outline:none;box-sizing:border-box" style-focus="border-color:rgba(169,150,242,.5)">
+        </div>
+      </div>
+
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-height:max-content">
+        <div style="display:flex;align-items:center;gap:8px;flex:none"><span style="width:8px;height:8px;border-radius:50%;background:#a996f2"></span><span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#a996f2">In progress</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.35)">{{ doingCountRow }}</span></div>
+        <div style="display:flex;gap:10px;flex:1;min-height:118px;overflow-x:auto;align-items:stretch">
+          <sc-for list="{{ doingTasks }}" as="item" hint-placeholder-count="2">
+            <div style="width:232px;flex:none;box-sizing:border-box;background:{{ item.bg }};border:1px solid {{ item.borderColor }};border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;gap:7px" style-hover="border-color:rgba(169,150,242,.6)">
+              <div style="display:flex;align-items:flex-start;gap:9px">
+                <div onClick="{{ item.onToggle }}" title="Mark done" style="width:17px;height:17px;border-radius:50%;border:1.5px solid #a996f2;flex:none;cursor:pointer;margin-top:1px;box-sizing:border-box" style-hover="background:rgba(123,216,176,.2);border-color:#7bd8b0"></div>
+                <div onClick="{{ item.onOpen }}" style="font-size:13.5px;line-height:1.35;flex:1;cursor:pointer" style-hover="color:#cabdf7">{{ item.title }}</div>
+                <div onClick="{{ item.onDelete }}" title="Delete" style="width:18px;height:18px;border-radius:5px;color:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex:none" style-hover="color:#f28b8b;background:rgba(242,139,139,.12)">×</div>
+              </div>
+              <sc-if value="{{ item.hasDesc }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;line-height:1.4;color:rgba(255,255,255,.45);max-height:32px;overflow:hidden">{{ item.desc }}</div></sc-if>
+              <sc-if value="{{ item.hasLinks }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap"><sc-for list="{{ item.linkItems }}" as="ln" hint-placeholder-count="1"><a href="{{ ln.href }}" target="_blank" rel="noreferrer" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:#8ab4ff;background:rgba(138,180,255,.1);border:1px solid rgba(138,180,255,.25);padding:2px 7px;border-radius:4px;text-decoration:none;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" style-hover="background:rgba(138,180,255,.2)">↗ {{ ln.label }}</a></sc-for></div></sc-if>
+              <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+                <sc-if value="{{ item.hasProject }}" hint-placeholder-val="{{ false }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ item.projectColor }};flex:none"></span><span style="font-size:10.5px;color:rgba(255,255,255,.45)">{{ item.projectName }}</span></sc-if>
+                <sc-if value="{{ item.hasOverdue }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;color:#f28b8b;background:rgba(242,139,139,.12);padding:1px 6px;border-radius:4px">overdue</span></sc-if>
+                <sc-if value="{{ item.hasPri }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;color:{{ item.priColor }}">{{ item.priLabel }}</span></sc-if>
+              </div>
+              <div style="display:flex;gap:7px;align-items:center;margin-top:auto">
+                <span style="font-size:10.5px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,.5)">{{ item.dueLabel }}</span>
+                <span onClick="{{ item.onStop }}" style="margin-left:auto;font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.55);cursor:pointer;user-select:none" style-hover="background:rgba(255,255,255,.08)">stop</span>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ doingEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="width:280px;border:1.5px dashed rgba(255,255,255,.12);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,.32);text-align:center;padding:0 16px">Nothing in progress — hit <span style="font-family:'JetBrains Mono',monospace;color:#a996f2;margin:0 4px">start</span> on a task</div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-height:max-content">
+        <div style="display:flex;align-items:center;gap:8px;flex:none"><span style="width:8px;height:8px;border-radius:50%;background:#7bd8b0"></span><span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7bd8b0">Done</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.35)">{{ doneCount }}</span></div>
+        <div style="display:flex;gap:10px;flex:1;min-height:118px;overflow-x:auto;align-items:stretch">
+          <sc-for list="{{ doneTasks }}" as="item" hint-placeholder-count="3">
+            <div style="width:232px;flex:none;box-sizing:border-box;background:{{ item.bg }};border:1px solid {{ item.borderColor }};border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;gap:7px;opacity:.55" style-hover="opacity:.85">
+              <div style="display:flex;align-items:flex-start;gap:9px">
+                <div onClick="{{ item.onToggle }}" title="Mark not done" style="width:17px;height:17px;border-radius:50%;background:#7bd8b0;color:#0c0c0e;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex:none;cursor:pointer;margin-top:1px">✓</div>
+                <div onClick="{{ item.onOpen }}" style="font-size:13.5px;line-height:1.35;flex:1;text-decoration:line-through;cursor:pointer" style-hover="color:#cabdf7">{{ item.title }}</div>
+                <div onClick="{{ item.onDelete }}" title="Delete" style="width:18px;height:18px;border-radius:5px;color:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex:none" style-hover="color:#f28b8b;background:rgba(242,139,139,.12)">×</div>
+              </div>
+              <div style="display:flex;gap:7px;align-items:center;margin-top:auto">
+                <span style="font-size:10.5px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,.4)">{{ item.dueLabel }}</span>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ doneEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="width:280px;border:1.5px dashed rgba(255,255,255,.12);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,.32)">Nothing done yet today</div>
+          </sc-if>
+        </div>
+      </div>
+
+    </div>
+  </sc-if>
+
+  <!-- LIST -->
+  <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="List view" style="flex:1;min-height:0;overflow-y:auto;padding-right:6px">
+      <sc-for list="{{ listGroups }}" as="g" hint-placeholder-count="2">
+        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.35);padding:16px 0 8px">{{ g.label }} · {{ g.count }}</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <sc-for list="{{ g.rows }}" as="item" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:9px;background:{{ item.bg }};border:1px solid {{ item.borderColor }};opacity:{{ item.op }}" style-hover="border-color:rgba(255,255,255,.2)">
+              <sc-if value="{{ item.isDone }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ item.onToggle }}" style="width:18px;height:18px;border-radius:50%;background:#7bd8b0;color:#0c0c0e;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none;cursor:pointer">✓</div>
+              </sc-if>
+              <sc-if value="{{ item.notDone }}" hint-placeholder-val="{{ true }}">
+                <div onClick="{{ item.onToggle }}" title="Mark done" style="width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);flex:none;cursor:pointer;box-sizing:border-box" style-hover="border-color:#7bd8b0;background:rgba(123,216,176,.15)"></div>
+              </sc-if>
+              <div onClick="{{ item.onOpen }}" style="font-size:14px;text-decoration:{{ item.deco }};cursor:pointer" style-hover="color:#cabdf7">{{ item.title }}</div>
+              <sc-if value="{{ item.hasProject }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:50%;background:{{ item.projectColor }};flex:none"></span><span style="font-size:12px;color:rgba(255,255,255,.5)">{{ item.projectName }}</span></sc-if>
+              <sc-if value="{{ item.hasOverdue }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#f28b8b;background:rgba(242,139,139,.12);padding:2px 7px;border-radius:5px">overdue</span></sc-if>
+              <sc-if value="{{ item.hasPri }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:{{ item.priColor }}">{{ item.priLabel }}</span></sc-if>
+              <span style="margin-left:auto;font-size:11px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,.5)">{{ item.dueLabel }}</span>
+              <sc-if value="{{ item.showStart }}" hint-placeholder-val="{{ false }}"><span onClick="{{ item.onStart }}" style="font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;border:1px solid rgba(169,150,242,.4);color:#a996f2;cursor:pointer;user-select:none" style-hover="background:rgba(169,150,242,.15)">start</span></sc-if>
+              <sc-if value="{{ item.showStop }}" hint-placeholder-val="{{ false }}"><span onClick="{{ item.onStop }}" style="font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.55);cursor:pointer;user-select:none" style-hover="background:rgba(255,255,255,.08)">stop</span></sc-if>
+              <div onClick="{{ item.onDelete }}" title="Delete" style="width:20px;height:20px;border-radius:5px;color:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex:none" style-hover="color:#f28b8b;background:rgba(242,139,139,.12)">×</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <!-- WEEK -->
+  <sc-if value="{{ isWeek }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Week view" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;flex:1;min-height:0">
+      <sc-for list="{{ weekDays }}" as="d" hint-placeholder-count="5">
+        <div style="display:flex;flex-direction:column;gap:8px;min-height:0;overflow-y:auto">
+          <div style="display:flex;align-items:baseline;gap:6px;padding:0 2px;flex:none">
+            <span style="font-size:12.5px;font-weight:{{ d.hw }};color:{{ d.hc }}">{{ d.label }}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:{{ d.hc }}">{{ d.dateNum }}</span>
+            <sc-if value="{{ d.isToday }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;background:rgba(169,150,242,.15);color:#a996f2;border-radius:4px;padding:1px 6px">today</span></sc-if>
+          </div>
+          <sc-for list="{{ d.cards }}" as="item" hint-placeholder-count="2">
+            <div style="background:{{ item.bg }};border:1px solid {{ item.borderColor }};border-radius:9px;padding:10px 12px;opacity:{{ item.op }};flex:none;cursor:default" style-hover="border-color:rgba(255,255,255,.2)">
+              <div style="display:flex;align-items:flex-start;gap:8px">
+                <div onClick="{{ item.onOpen }}" style="font-size:12.5px;line-height:1.35;flex:1;text-decoration:{{ item.deco }};cursor:pointer" style-hover="color:#cabdf7">{{ item.title }}</div>
+                <div onClick="{{ item.onDelete }}" title="Delete" style="color:rgba(255,255,255,.25);cursor:pointer;font-size:12px;line-height:1" style-hover="color:#f28b8b">×</div>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+                <sc-if value="{{ item.hasProject }}" hint-placeholder-val="{{ false }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ item.projectColor }};flex:none"></span></sc-if>
+                <span style="font-size:10.5px;color:rgba(255,255,255,.45)">{{ item.weekMeta }}</span>
+                <sc-if value="{{ item.hasOverdue }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;color:#f28b8b;background:rgba(242,139,139,.12);padding:1px 6px;border-radius:4px">overdue</span></sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <!-- STATS -->
+  <sc-if value="{{ isStats }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Stats view" style="flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start;padding-right:6px">
+      <div style="background:#1a1a1f;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:18px 20px">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Today's progress</div>
+        <div style="font-size:34px;font-weight:600;color:#a996f2">{{ pctLabel }}</div>
+        <div style="display:flex;gap:3px;margin-top:14px">
+          <sc-for list="{{ segs }}" as="s" hint-placeholder-count="6">
+            <div style="flex:1;height:7px;background:{{ s.bg }};border-radius:2px"></div>
+          </sc-for>
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:10px">{{ todaySummary }}</div>
+      </div>
+      <div style="background:#1a1a1f;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:18px 20px">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Last 7 days</div>
+        <div style="display:flex;align-items:flex-end;gap:6px;height:80px">
+          <sc-for list="{{ weekBars }}" as="b" hint-placeholder-count="7">
+            <div style="flex:1;height:{{ b.h }};background:{{ b.bg }};border-radius:3px"></div>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.3);margin-top:8px;font-family:'JetBrains Mono',monospace"><span>t</span><span>f</span><span>s</span><span>s</span><span>m</span><span>t</span><span>w</span></div>
+      </div>
+      <div style="background:#1a1a1f;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:18px 20px">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px">By tag</div>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          <sc-for list="{{ projectStats }}" as="p" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{ p.color }};flex:none"></span><span style="font-size:12.5px;color:rgba(255,255,255,.75)">{{ p.name }}</span><span style="margin-left:auto;font-size:11px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,.4)">{{ p.countLabel }}</span></div>
+              <div style="height:5px;border-radius:3px;background:rgba(255,255,255,.08);position:relative;overflow:hidden"><div style="position:absolute;inset:0;width:{{ p.w }};background:{{ p.color }};border-radius:3px"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="background:#1a1a1f;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:18px 20px;display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em">Momentum</div>
+        <div style="display:flex;gap:28px">
+          <div><div style="font-size:26px;font-weight:600">{{ streak }}</div><div style="font-size:11px;color:rgba(255,255,255,.4)">day streak</div></div>
+          <div><div style="font-size:26px;font-weight:600;color:#7bd8b0">{{ totalDone }}</div><div style="font-size:11px;color:rgba(255,255,255,.4)">completed</div></div>
+          <div><div style="font-size:26px;font-weight:600;color:#f28b8b">{{ overdueCount }}</div><div style="font-size:11px;color:rgba(255,255,255,.4)">overdue</div></div>
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:auto">Clear the overdue task to keep the streak alive.</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- TASK DETAIL MODAL -->
+  <sc-if value="{{ hasDetail }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDetail }}" style="position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:100;animation:ovFade .15s ease">
+      <div onClick="{{ stopProp }}" data-screen-label="Task detail" style="width:480px;max-height:86vh;overflow-y:auto;box-sizing:border-box;background:#1a1a1f;border:1px solid rgba(255,255,255,.12);border-radius:13px;padding:22px 24px;display:flex;flex-direction:column;gap:16px;box-shadow:0 24px 64px rgba(0,0,0,.6);animation:ovPop .18s ease">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <span style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:{{ detailStatusColor }};border:1px solid {{ detailStatusColor }};padding:2px 8px;border-radius:5px">{{ detailStatus }}</span>
+              <sc-if value="{{ detailHasPri }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:{{ detailPriColor }}">{{ detailPriLabel }}</span></sc-if>
+            </div>
+            <div style="font-size:18px;font-weight:600;line-height:1.3">{{ detailTitle }}</div>
+          </div>
+          <div onClick="{{ closeDetail }}" style="width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;flex:none" style-hover="background:rgba(255,255,255,.08);color:#ececf1">×</div>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px">Details</div>
+          <div style="font-size:13.5px;line-height:1.5;color:{{ detailDescColor }};background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:11px 13px">{{ detailDesc }}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 12px">
+            <div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px">Start date</div>
+            <div style="font-size:12.5px;font-family:'JetBrains Mono',monospace">{{ detailStart }}</div>
+          </div>
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 12px">
+            <div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px">End date</div>
+            <div style="font-size:12.5px;font-family:'JetBrains Mono',monospace">{{ detailEnd }}</div>
+          </div>
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 12px">
+            <div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px">Time</div>
+            <div style="font-size:12.5px;font-family:'JetBrains Mono',monospace">{{ detailTime }}</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px">Tag</div>
+          <sc-if value="{{ detailHasProject }}" hint-placeholder-val="{{ false }}">
+            <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:5px 11px;font-size:12.5px"><span style="width:7px;height:7px;border-radius:50%;background:{{ detailProjectColor }};flex:none"></span>{{ detailProjectName }}</div>
+          </sc-if>
+          <sc-if value="{{ detailNoProject }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:rgba(255,255,255,.35)">No tag</div></sc-if>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px">References</div>
+          <sc-if value="{{ detailHasLinks }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <sc-for list="{{ detailLinks }}" as="ln" hint-placeholder-count="1">
+                <a href="{{ ln.href }}" target="_blank" rel="noreferrer" style="display:flex;align-items:center;gap:8px;font-size:12px;font-family:'JetBrains Mono',monospace;color:#8ab4ff;background:rgba(138,180,255,.08);border:1px solid rgba(138,180,255,.22);padding:8px 11px;border-radius:7px;text-decoration:none;overflow:hidden" style-hover="background:rgba(138,180,255,.16)"><span style="flex:none">↗</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ln.href }}</span></a>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ detailNoLinks }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:rgba(255,255,255,.35)">No references</div></sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- COMPOSER MODAL -->
+  <sc-if value="{{ composer }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeComposer }}" style="position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:100;animation:ovFade .15s ease">
+      <div onClick="{{ stopProp }}" style="width:470px;max-height:86vh;overflow-y:auto;box-sizing:border-box;background:#1a1a1f;border:1px solid rgba(255,255,255,.12);border-radius:13px;padding:20px 22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 64px rgba(0,0,0,.6);animation:ovPop .18s ease">
+        <div style="display:flex;align-items:center">
+          <div style="font-size:15px;font-weight:600">New task</div>
+          <div onClick="{{ closeComposer }}" style="margin-left:auto;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px" style-hover="background:rgba(255,255,255,.08);color:#ececf1">×</div>
+        </div>
+        <input autoFocus="{{ true }}" value="{{ draftTitle }}" onChange="{{ onDraftTitle }}" onKeyDown="{{ onDraftKey }}" placeholder="Task title — e.g. Physics problem set" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:11px 13px;font-family:inherit;font-size:14px;color:#ececf1;outline:none" style-focus="border-color:rgba(169,150,242,.55)">
+        <div>
+          <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:7px">Description</div>
+          <textarea value="{{ draftDesc }}" onChange="{{ onDraftDesc }}" rows="3" placeholder="Details, requirements, notes…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px 13px;font-family:inherit;font-size:13px;line-height:1.45;color:#ececf1;outline:none;resize:vertical;min-height:58px" style-focus="border-color:rgba(169,150,242,.55)"></textarea>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:7px">Tag</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <sc-for list="{{ projectChoices }}" as="c" hint-placeholder-count="5">
+              <div onClick="{{ c.onPick }}" style="display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:6px;font-size:12px;cursor:pointer;background:{{ c.bg }};border:1px solid {{ c.bd }};color:{{ c.fg }};user-select:none">
+                <sc-if value="{{ c.hasDot }}" hint-placeholder-val="{{ false }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ c.color }};flex:none"></span></sc-if>
+                {{ c.label }}
+              </div>
+            </sc-for>
+            <input value="{{ tagDraft }}" onChange="{{ onTagDraft }}" onKeyDown="{{ onTagKey }}" placeholder="+ new tag ⏎" style="width:96px;box-sizing:border-box;background:transparent;border:1.5px dashed rgba(255,255,255,.16);border-radius:6px;padding:4px 9px;font-family:inherit;font-size:12px;color:#ececf1;outline:none" style-focus="border-color:rgba(169,150,242,.5)">
+          </div>
+        </div>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1">
+            <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:7px">Start date</div>
+            <input type="date" value="{{ draftStart }}" onChange="{{ onDraftStart }}" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 11px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#ececf1;outline:none;color-scheme:dark" style-focus="border-color:rgba(169,150,242,.55)">
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:7px">End date</div>
+            <input type="date" value="{{ draftEnd }}" min="{{ draftStart }}" onChange="{{ onDraftEnd }}" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 11px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#ececf1;outline:none;color-scheme:dark" style-focus="border-color:rgba(169,150,242,.55)">
+          </div>
+          <div>
+            <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:7px">Time</div>
+            <input type="time" value="{{ draftTime }}" onChange="{{ onDraftTime }}" style="width:108px;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 11px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#ececf1;outline:none;color-scheme:dark" style-focus="border-color:rgba(169,150,242,.55)">
+          </div>
+        </div>
+        <div style="display:flex;gap:16px">
+          <div style="flex:1">
+            <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:7px">Priority</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+              <sc-for list="{{ priChoices }}" as="c" hint-placeholder-count="3">
+                <div onClick="{{ c.onPick }}" style="display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:6px;font-size:12px;cursor:pointer;background:{{ c.bg }};border:1px solid {{ c.bd }};color:{{ c.fg }};user-select:none">
+                  <sc-if value="{{ c.hasDot }}" hint-placeholder-val="{{ false }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ c.color }};flex:none"></span></sc-if>
+                  {{ c.label }}
+                </div>
+              </sc-for>
+              <input value="{{ priDraft }}" onChange="{{ onPriDraft }}" onKeyDown="{{ onPriKey }}" placeholder="+ new level ⏎" style="width:104px;box-sizing:border-box;background:transparent;border:1.5px dashed rgba(255,255,255,.16);border-radius:6px;padding:4px 9px;font-family:inherit;font-size:12px;color:#ececf1;outline:none" style-focus="border-color:rgba(169,150,242,.5)">
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:7px">References</div>
+          <input value="{{ draftLink }}" onChange="{{ onDraftLink }}" onKeyDown="{{ onLinkKey }}" placeholder="Paste a link (web, Drive, docs…) — Enter to add" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 13px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#ececf1;outline:none" style-focus="border-color:rgba(169,150,242,.55)">
+          <sc-if value="{{ hasDraftLinks }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+              <sc-for list="{{ draftLinkChips }}" as="c" hint-placeholder-count="1">
+                <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-family:'JetBrains Mono',monospace;color:#8ab4ff;background:rgba(138,180,255,.1);border:1px solid rgba(138,180,255,.25);padding:3px 8px;border-radius:5px;max-width:100%">
+                  <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↗ {{ c.label }}</span>
+                  <span onClick="{{ c.onRemove }}" style="cursor:pointer;color:rgba(255,255,255,.4);font-size:13px;line-height:1" style-hover="color:#f28b8b">×</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <div onClick="{{ closeComposer }}" style="padding:8px 16px;border-radius:7px;border:1px solid rgba(255,255,255,.14);font-size:13px;color:rgba(255,255,255,.65);cursor:pointer;user-select:none" style-hover="background:rgba(255,255,255,.06)">Cancel</div>
+          <div onClick="{{ addTask }}" style="padding:8px 18px;border-radius:7px;background:#a996f2;color:#0c0c0e;font-size:13px;font-weight:600;cursor:pointer;user-select:none" style-hover="background:#bcaef7">Add task</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultTab&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Board&quot;, &quot;List&quot;, &quot;Week&quot;, &quot;Stats&quot;], &quot;default&quot;: &quot;Board&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Behavior&quot;}, &quot;showStats&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}}">
+class Component extends DCLogic {
+  days = [
+    { key: 'mon', label: 'Mon', num: '3', date: '2026-07-03' },
+    { key: 'tue', label: 'Tue', num: '4', date: '2026-07-04' },
+    { key: 'wed', label: 'Wed', num: '5', date: '2026-07-05' },
+    { key: 'thu', label: 'Thu', num: '6', date: '2026-07-06' },
+    { key: 'fri', label: 'Fri', num: '7', date: '2026-07-07' }
+  ];
+  todayKey = 'wed';
+  todayDate = '2026-07-05';
+  projects = {
+    linalg: { name: 'Linear Algebra', color: '#8ab4ff' },
+    thesis: { name: 'Thesis', color: '#f2a2c0' },
+    chem: { name: 'Chemistry', color: '#7fd4e0' },
+    job: { name: 'Part-time', color: '#e8c97a' }
+  };
+
+  state = {
+    tab: null, search: '', composer: false, quick: '',
+    detailId: null,
+    customTags: {}, customPris: [], tagDraft: '', priDraft: '',
+    dTitle: '', dDesc: '', dProject: '', dStart: '2026-07-05', dEnd: '2026-07-05', dTime: '', dPri: '', dLink: '', dLinks: [],
+    tasks: [
+      { id: 1, title: 'Submit lab report — Chemistry', project: 'chem', start: '2026-07-03', end: '2026-07-04', time: '23:59', pri: 'high', status: 'todo' },
+      { id: 2, title: 'Review lecture notes ch. 4–5', desc: 'Focus on eigenvalues and orthogonal projections', links: ['https://drive.google.com/lecture-notes'], project: 'linalg', start: '2026-07-05', end: '2026-07-05', time: '14:00', pri: '', status: 'doing' },
+      { id: 3, title: 'Draft thesis outline → advisor', desc: 'Sections: intro, related work, method, timeline', links: ['https://docs.google.com/thesis-outline', 'https://scholar.google.com'], project: 'thesis', start: '2026-07-03', end: '2026-07-05', time: '17:00', pri: 'medium', status: 'doing' },
+      { id: 4, title: 'Print worksheets for study group', project: '', start: '2026-07-05', end: '2026-07-05', time: '19:30', pri: '', status: 'todo' },
+      { id: 5, title: 'Flashcards — Spanish vocab', project: '', start: '2026-07-05', end: '2026-07-05', time: '20:00', pri: '', status: 'todo' },
+      { id: 6, title: 'Statistics quiz prep', links: ['https://stats.university.edu/practice-sets'], project: 'linalg', start: '2026-07-05', end: '2026-07-06', time: '09:00', pri: 'medium', status: 'todo' },
+      { id: 7, title: 'Lab session 3', project: 'chem', start: '2026-07-06', end: '2026-07-06', time: '13:00', pri: '', status: 'todo' },
+      { id: 8, title: 'Shift at café', project: 'job', start: '2026-07-06', end: '2026-07-06', time: '18:00', pri: '', status: 'todo' },
+      { id: 9, title: 'Physics problem set', project: '', start: '2026-07-06', end: '2026-07-07', time: '15:00', pri: '', status: 'todo' },
+      { id: 10, title: 'Register for fall electives', project: '', start: '2026-07-05', end: '2026-07-05', time: '', pri: '', status: 'done', doneAt: '10:12' },
+      { id: 11, title: 'Email professor about office hours', project: '', start: '2026-07-05', end: '2026-07-05', time: '', pri: '', status: 'done', doneAt: '09:40' },
+      { id: 12, title: 'Return library books', project: '', start: '2026-07-05', end: '2026-07-05', time: '', pri: '', status: 'done', doneAt: '08:55' }
+    ]
+  };
+
+  componentDidMount() {
+    try {
+      const d2k = { mon: '2026-07-03', tue: '2026-07-04', wed: '2026-07-05', thu: '2026-07-06', fri: '2026-07-07' };
+      const raw = localStorage.getItem('studylist-proto-v3');
+      let t = raw ? JSON.parse(raw) : null;
+      if (!t) {
+        const old = localStorage.getItem('studylist-proto-v2');
+        if (old) t = (JSON.parse(old) || []).map(x => x.end ? x : Object.assign({}, x, { start: d2k[x.day] || this.todayDate, end: d2k[x.day] || this.todayDate }));
+      }
+      if (Array.isArray(t) && t.length) this.setState({ tasks: t });
+      const ct = localStorage.getItem('studylist-tags-v1');
+      if (ct) this.setState({ customTags: JSON.parse(ct) || {} });
+      const cp = localStorage.getItem('studylist-pris-v1');
+      if (cp) this.setState({ customPris: JSON.parse(cp) || [] });
+    } catch (e) {}
+  }
+
+  persist() {
+    try { localStorage.setItem('studylist-proto-v3', JSON.stringify(this.state.tasks)); } catch (e) {}
+  }
+
+  mut(fn) {
+    this.setState(s => ({ tasks: fn(s.tasks.slice()) }), () => this.persist());
+  }
+
+  dayIdx(k) { return this.days.findIndex(d => d.key === k); }
+
+  allTags() { return Object.assign({}, this.projects, this.state.customTags); }
+
+  priList() {
+    return [
+      { key: 'medium', label: '! medium', color: '#e8c97a' },
+      { key: 'high', label: '!! high', color: '#f28b8b' }
+    ].concat(this.state.customPris || []);
+  }
+
+  fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  shortDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  nowTime() {
+    const d = new Date();
+    return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+
+  sortKey(t) {
+    const d = parseInt((t.end || '9999-12-31').replace(/-/g, ''), 10);
+    const tm = t.time ? parseInt(t.time.replace(':', ''), 10) || 2500 : 2500;
+    return d * 10000 + tm;
+  }
+
+  decorate(t) {
+    const p = this.allTags()[t.project];
+    const pr = this.priList().find(x => x.key === t.pri);
+    const done = t.status === 'done';
+    const overdue = !done && !!t.end && t.end < this.todayDate;
+    let dueLabel;
+    if (done) dueLabel = '✓ ' + (t.doneAt || 'done');
+    else if (t.end === this.todayDate) dueLabel = t.time || 'today';
+    else if (t.end) dueLabel = this.shortDate(t.end) + (t.time ? ' ' + t.time : '');
+    else dueLabel = '';
+    return {
+      id: t.id, title: t.title,
+      hasProject: !!p,
+      projectName: p ? p.name : '',
+      projectColor: p ? p.color : 'transparent',
+      hasOverdue: overdue,
+      hasPri: !!t.pri,
+      priLabel: pr ? pr.label : (t.pri ? '! ' + t.pri : ''),
+      priColor: pr ? pr.color : '#e8c97a',
+      dueLabel,
+      hasDesc: !!t.desc,
+      desc: t.desc || '',
+      hasLinks: !!(t.links && t.links.length),
+      linkItems: (t.links || []).map(u => ({ href: u, label: this.linkLabel(u) })),
+      bg: done ? 'rgba(255,255,255,.02)' : (t.status === 'doing' ? '#1e1c26' : '#1a1a1f'),
+      borderColor: overdue ? 'rgba(242,139,139,.35)' : (t.status === 'doing' ? 'rgba(169,150,242,.35)' : (done ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.07)')),
+      op: done ? '0.55' : '1',
+      deco: done ? 'line-through' : 'none',
+      isDone: done,
+      notDone: !done,
+      showStart: t.status === 'todo',
+      showStop: t.status === 'doing',
+      weekMeta: done ? ('✓ ' + (t.doneAt || 'done')) : ([p ? p.name : '', t.time].filter(Boolean).join(' · ') || '—'),
+      onToggle: () => this.mut(ts => ts.map(x => x.id === t.id ? Object.assign({}, x, { status: done ? 'todo' : 'done', doneAt: done ? '' : this.nowTime() }) : x)),
+      onStart: () => this.mut(ts => ts.map(x => x.id === t.id ? Object.assign({}, x, { status: 'doing' }) : x)),
+      onStop: () => this.mut(ts => ts.map(x => x.id === t.id ? Object.assign({}, x, { status: 'todo' }) : x)),
+      onDelete: () => this.mut(ts => ts.filter(x => x.id !== t.id)),
+      onToday: () => this.mut(ts => ts.map(x => x.id === t.id ? Object.assign({}, x, { end: this.todayDate, start: (x.start && x.start < this.todayDate) ? x.start : this.todayDate }) : x)),
+      onOpen: e => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ detailId: t.id }); }
+    };
+  }
+
+  addTask(o) {
+    const title = (o.title || '').trim();
+    if (!title) return;
+    const t = { id: Date.now(), title, desc: o.desc || '', links: o.links || [], project: o.project || '', start: o.start || this.todayDate, end: o.end || o.start || this.todayDate, time: o.time || '', pri: o.pri || '', status: 'todo' };
+    this.mut(ts => ts.concat([t]));
+  }
+
+  linkLabel(u) {
+    try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return String(u).slice(0, 28); }
+  }
+
+  chip(label, sel, onPick, color) {
+    return {
+      label, onPick,
+      hasDot: !!color,
+      color: color || 'transparent',
+      bg: sel ? 'rgba(169,150,242,.16)' : 'rgba(255,255,255,.04)',
+      bd: sel ? 'rgba(169,150,242,.5)' : 'rgba(255,255,255,.1)',
+      fg: sel ? '#cabdf7' : 'rgba(255,255,255,.65)'
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const tab = s.tab || this.props.defaultTab || 'Board';
+    const q = s.search.trim().toLowerCase();
+    const all = s.tasks.filter(t => !q || t.title.toLowerCase().includes(q));
+    const sorted = all.slice().sort((a, b) => this.sortKey(a) - this.sortKey(b));
+    const dec = t => this.decorate(t);
+    const td = this.todayDate;
+
+    const isOver = t => t.status !== 'done' && !!t.end && t.end < td;
+    const overdueTasks = sorted.filter(isOver).map(dec);
+    const todo = sorted.filter(t => t.status === 'todo' && !isOver(t)).map(dec);
+    const doing = sorted.filter(t => t.status === 'doing' && !isOver(t)).map(dec);
+    const doneArr = sorted.filter(t => t.status === 'done').map(dec);
+
+    const todayAll = s.tasks.filter(t => t.end === td);
+    const todayDone = todayAll.filter(t => t.status === 'done').length;
+    const overdueCount = s.tasks.filter(t => t.status !== 'done' && !!t.end && t.end < td).length;
+    const pct = todayAll.length ? Math.round(todayDone / todayAll.length * 100) : 0;
+
+    const g = (label, arr) => ({ label, count: String(arr.length), rows: arr, empty: arr.length === 0 });
+    const listGroups = [
+      g('Overdue', sorted.filter(isOver).map(dec)),
+      g('Today', sorted.filter(t => t.status !== 'done' && t.end === td).map(dec)),
+      g('Upcoming', sorted.filter(t => t.status !== 'done' && !!t.end && t.end > td).map(dec)),
+      g('Done', sorted.filter(t => t.status === 'done').map(dec))
+    ].filter(x => !x.empty);
+
+    const weekDays = this.days.map(d => ({
+      label: d.label, dateNum: d.num,
+      isToday: d.key === this.todayKey,
+      hw: d.key === this.todayKey ? '600' : '400',
+      hc: d.key === this.todayKey ? '#a996f2' : 'rgba(255,255,255,.5)',
+      cards: sorted.filter(t => t.end === d.date).map(dec)
+    }));
+
+    const segs = todayAll.length
+      ? todayAll.map(t => ({ bg: t.status === 'done' ? '#a996f2' : 'rgba(255,255,255,.12)' }))
+      : [{ bg: 'rgba(255,255,255,.12)' }];
+    const weekBars = [45, 70, 30, 85, 60, 40].map(h => ({ h: h + '%', bg: 'rgba(169,150,242,.3)' }))
+      .concat([{ h: Math.max(10, pct) + '%', bg: '#a996f2' }]);
+    const tags = this.allTags();
+    const projectStats = Object.keys(tags).map(k => {
+      const p = tags[k];
+      const ts = s.tasks.filter(t => t.project === k);
+      const dn = ts.filter(t => t.status === 'done').length;
+      return { name: p.name, color: p.color, countLabel: dn + ' / ' + ts.length, w: (ts.length ? Math.round(dn / ts.length * 100) : 0) + '%' };
+    });
+
+    const tabs = ['List', 'Board', 'Week', 'Stats'].map(name => ({
+      name,
+      onClick: () => this.setState({ tab: name }),
+      bg: name === tab ? '#26262c' : 'transparent',
+      color: name === tab ? '#ececf1' : 'rgba(255,255,255,.55)',
+      weight: name === tab ? '500' : '400'
+    }));
+
+    const projectChoices = [this.chip('None', s.dProject === '', () => this.setState({ dProject: '' }))]
+      .concat(Object.keys(tags).map(k => this.chip(tags[k].name, s.dProject === k, () => this.setState({ dProject: k }), tags[k].color)));
+    const detailTask = s.detailId ? s.tasks.find(t => t.id === s.detailId) : null;
+    const detail = detailTask ? this.decorate(detailTask) : null;
+    const priChoices = [this.chip('None', s.dPri === '', () => this.setState({ dPri: '' }))]
+      .concat(this.priList().map(pr => this.chip(pr.label, s.dPri === pr.key, () => this.setState({ dPri: pr.key }), pr.color)));
+
+    const submitDraft = () => {
+      if (!s.dTitle.trim()) return;
+      let links = s.dLinks;
+      const pending = s.dLink.trim();
+      if (pending) links = links.concat([/^https?:\/\//i.test(pending) ? pending : 'https://' + pending]);
+      this.addTask({ title: s.dTitle, desc: s.dDesc, links, project: s.dProject, start: s.dStart, end: s.dEnd, time: s.dTime, pri: s.dPri });
+      this.setState({ composer: false, dTitle: '', dDesc: '', dTime: '', dPri: '', dProject: '', dStart: this.todayDate, dEnd: this.todayDate, dLink: '', dLinks: [] });
+    };
+
+    return {
+      tabs,
+      isBoard: tab === 'Board', isList: tab === 'List', isWeek: tab === 'Week', isStats: tab === 'Stats',
+      showStrip: this.props.showStats ?? true,
+      search: s.search,
+      onSearch: e => this.setState({ search: e.target.value }),
+      dateLabel: 'Wed, Jul 5',
+      openComposer: () => this.setState({ composer: true }),
+      todayDoneLabel: String(todayDone),
+      todayTotalLabel: '/ ' + todayAll.length + ' done',
+      doingCount: String(s.tasks.filter(t => t.status === 'doing').length),
+      overdueCount: String(overdueCount),
+      streak: '8',
+      todoTasks: todo, doingTasks: doing, doneTasks: doneArr, overdueTasks,
+      overdueRowCount: String(overdueTasks.length), overdueEmpty: overdueTasks.length === 0,
+      todoCount: String(todo.length), doingCountRow: String(doing.length), doneCount: String(doneArr.length),
+      todoEmpty: todo.length === 0, doingEmpty: doing.length === 0, doneEmpty: doneArr.length === 0,
+      quick: s.quick,
+      onQuickChange: e => this.setState({ quick: e.target.value }),
+      onQuickKey: e => {
+        if (e.key === 'Enter' && s.quick.trim()) {
+          this.addTask({ title: s.quick });
+          this.setState({ quick: '' });
+        }
+      },
+      listGroups, weekDays,
+      pctLabel: pct + '%',
+      todaySummary: todayDone + ' of ' + todayAll.length + ' tasks done today',
+      segs, weekBars, projectStats,
+      totalDone: String(s.tasks.filter(t => t.status === 'done').length),
+      composer: s.composer,
+      draftTitle: s.dTitle,
+      onDraftTitle: e => this.setState({ dTitle: e.target.value }),
+      onDraftKey: e => {
+        if (e.key === 'Enter') submitDraft();
+        if (e.key === 'Escape') this.setState({ composer: false });
+      },
+      draftTime: s.dTime,
+      onDraftTime: e => this.setState({ dTime: e.target.value }),
+      draftDesc: s.dDesc,
+      onDraftDesc: e => this.setState({ dDesc: e.target.value }),
+      draftLink: s.dLink,
+      onDraftLink: e => this.setState({ dLink: e.target.value }),
+      onLinkKey: e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const v = s.dLink.trim();
+          if (v) {
+            const url = /^https?:\/\//i.test(v) ? v : 'https://' + v;
+            this.setState({ dLinks: s.dLinks.concat([url]), dLink: '' });
+          }
+        }
+      },
+      hasDraftLinks: s.dLinks.length > 0,
+      draftLinkChips: s.dLinks.map((u, i) => ({
+        label: this.linkLabel(u),
+        onRemove: () => this.setState({ dLinks: s.dLinks.filter((x, j) => j !== i) })
+      })),
+      projectChoices, priChoices,
+      draftStart: s.dStart,
+      onDraftStart: e => {
+        const v = e.target.value;
+        this.setState({ dStart: v, dEnd: (s.dEnd && s.dEnd < v) ? v : s.dEnd });
+      },
+      draftEnd: s.dEnd,
+      onDraftEnd: e => this.setState({ dEnd: e.target.value }),
+      hasDetail: !!detail,
+      detailTitle: detail ? detail.title : '',
+      detailHasDesc: !!(detailTask && detailTask.desc),
+      detailDesc: detailTask && detailTask.desc ? detailTask.desc : 'No description yet',
+      detailDescColor: detailTask && detailTask.desc ? 'rgba(255,255,255,.8)' : 'rgba(255,255,255,.35)',
+      detailNoProject: !(detail && detail.hasProject),
+      detailNoLinks: !(detail && detail.hasLinks),
+      detailStart: detailTask ? this.fmtDate(detailTask.start || detailTask.end) : '',
+      detailEnd: detailTask ? this.fmtDate(detailTask.end) : '',
+      detailTime: detailTask && detailTask.time ? detailTask.time : '—',
+      detailHasProject: !!(detail && detail.hasProject),
+      detailProjectName: detail ? detail.projectName : '',
+      detailProjectColor: detail ? detail.projectColor : 'transparent',
+      detailStatus: detailTask ? (detailTask.status === 'doing' ? 'In progress' : (detailTask.status === 'done' ? 'Done' : (detail.hasOverdue ? 'Overdue' : 'To do'))) : '',
+      detailStatusColor: detailTask ? (detailTask.status === 'doing' ? '#a996f2' : (detailTask.status === 'done' ? '#7bd8b0' : (detail.hasOverdue ? '#f28b8b' : 'rgba(255,255,255,.6)'))) : '',
+      detailHasPri: !!(detail && detail.hasPri),
+      detailPriLabel: detail ? detail.priLabel : '',
+      detailPriColor: detail ? detail.priColor : '#ececf1',
+      detailHasLinks: !!(detail && detail.hasLinks),
+      detailLinks: detail ? detail.linkItems : [],
+      closeDetail: () => this.setState({ detailId: null }),
+      tagDraft: s.tagDraft,
+      onTagDraft: e => this.setState({ tagDraft: e.target.value }),
+      onTagKey: e => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const name = s.tagDraft.trim();
+        if (!name) return;
+        const key = 'tag-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const palette = ['#c6f24e', '#f2a25e', '#7bd8b0', '#8ab4ff', '#f2a2c0', '#7fd4e0', '#e8c97a'];
+        const customTags = Object.assign({}, s.customTags);
+        if (!this.allTags()[key]) customTags[key] = { name, color: palette[Object.keys(s.customTags).length % palette.length] };
+        this.setState({ customTags, tagDraft: '', dProject: key }, () => {
+          try { localStorage.setItem('studylist-tags-v1', JSON.stringify(customTags)); } catch (er) {}
+        });
+      },
+      priDraft: s.priDraft,
+      onPriDraft: e => this.setState({ priDraft: e.target.value }),
+      onPriKey: e => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const name = s.priDraft.trim();
+        if (!name) return;
+        const key = 'pri-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const palette = ['#f2a25e', '#8ab4ff', '#f2a2c0', '#c6f24e'];
+        let customPris = s.customPris.slice();
+        if (!this.priList().find(x => x.key === key)) customPris = customPris.concat([{ key, label: name.toLowerCase(), color: palette[s.customPris.length % palette.length] }]);
+        this.setState({ customPris, priDraft: '', dPri: key }, () => {
+          try { localStorage.setItem('studylist-pris-v1', JSON.stringify(customPris)); } catch (er) {}
+        });
+      },
+      addTask: submitDraft,
+      closeComposer: () => this.setState({ composer: false }),
+      stopProp: e => e.stopPropagation()
+    };
+  }
+}
+</script>
+</body>
+</html>
