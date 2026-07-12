@@ -17,8 +17,8 @@ namespace TodoList.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTag([FromBody] CreateTagDto createTagDto, CancellationToken token)
         {
-            await _tagService.CreateTagAsync(createTagDto, token);
-            return Ok(new { message = "Create Successfully" });
+            var created = await _tagService.CreateTagAsync(createTagDto, token);
+            return CreatedAtAction(nameof(GetTagById), new { tagId = created.Id }, created);
         }
 
         [HttpPut("{tagId:int}")]

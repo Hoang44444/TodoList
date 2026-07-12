@@ -13,7 +13,7 @@ namespace TodoList.Services
             _uow = uow;
         }
 
-        public async Task CreatePriorityAsync(CreatePriorityDto createPriorityDto, CancellationToken token)
+        public async Task<PriorityResponseDto> CreatePriorityAsync(CreatePriorityDto createPriorityDto, CancellationToken token)
         {
             var newPriority = new Priority
             {
@@ -22,6 +22,12 @@ namespace TodoList.Services
             };
             _uow.PriorityRepository.Add(newPriority);
             await _uow.SaveChangesAsync(token);
+
+            return new PriorityResponseDto
+            {
+                Id = newPriority.Id,
+                PriorityName = newPriority.PriorityName
+            };
         }
 
         public async Task UpdatePriorityAsync(int priorityId, UpdatePriorityDto updatePriorityDto, CancellationToken token)
