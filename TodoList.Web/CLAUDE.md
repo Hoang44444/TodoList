@@ -88,3 +88,14 @@ Completed & verified frontend work. Newest at the bottom. Append here when a tas
   Deferred: task-detail modal, "→ today" reschedule, Week/Stats tabs.
   Backend notes (not fixed): `POST /api/todoitems` returns 201 with no body and no `Location` header (can't get new id);
   `priorities` table has duplicate "Urgent" rows (id 2 & 6).
+
+- 2026-07-13 — **Week view** (`Pages/Board.razor` `Week` tab + `.bd-week-*` in `.razor.css`).
+  7-column grid Mon→Sun (`T2`…`CN`) for the current week; each column lists tasks whose `DueDate.Date`
+  falls on that day (shared `Filtered()` so search applies). Today's column accented + "hôm nay" badge.
+  Compact card = done-toggle · title (strike+dim when done) · delete · meta row (tags + time if any).
+  Helpers: `WeekDays()` (Monday-anchored), `DowVi()`, `WeekTime()`. Reuses `Bucket`/`DueLabel` + actions.
+  Per-column vertical scroll: `.bd-week` uses `grid-template-rows: minmax(0,1fr)` so a long day scrolls
+  inside its column instead of overflowing; thin scrollbar styled for `.bd-week-day` (+ `.bd-list`).
+  Tasks with no due date, or due outside the current week, don't appear (by design — weekly agenda).
+  Verified with seeded tasks incl. 9 stacked on today to confirm column scroll.
+  Deferred: prev/next-week navigation, drag-to-reschedule, task-detail modal, Stats tab.

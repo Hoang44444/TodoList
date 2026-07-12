@@ -479,6 +479,101 @@
 
 .bd-row .bd-act { margin-left: 0; }
 
+/* ===== week view ===== */
+.bd-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+}
+
+.bd-week-day {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.bd-week-head {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 0 2px 2px;
+    flex: none;
+}
+
+.bd-week-dow {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #ececf1;
+}
+
+.bd-week-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, .4);
+}
+
+.bd-week-head.today .bd-week-dow,
+.bd-week-head.today .bd-week-date { color: #a996f2; }
+
+.bd-week-today {
+    font-size: 10px;
+    background: rgba(169, 150, 242, .15);
+    color: #a996f2;
+    border-radius: 4px;
+    padding: 1px 6px;
+}
+
+.bd-week-card {
+    background: #1a1a1f;
+    border: 1px solid rgba(255, 255, 255, .07);
+    border-radius: 9px;
+    padding: 9px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: none;
+}
+
+.bd-week-card:hover { border-color: rgba(255, 255, 255, .22); }
+.bd-week-card.overdue { border-color: rgba(242, 139, 139, .35); }
+.bd-week-card.doing { background: #1e1c26; border-color: rgba(169, 150, 242, .35); }
+.bd-week-card.done { opacity: .55; }
+.bd-week-card.done:hover { opacity: .85; }
+
+.bd-week-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.bd-week-card-title {
+    font-size: 12.5px;
+    line-height: 1.35;
+    flex: 1;
+    color: #ececf1;
+}
+
+.bd-week-card-title.done { text-decoration: line-through; }
+
+.bd-week-meta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bd-week-time {
+    font-size: 10.5px;
+    font-family: 'JetBrains Mono', monospace;
+    color: rgba(255, 255, 255, .45);
+}
+
 /* ===== composer modal ===== */
 .bd-overlay {
     position: fixed;
@@ -629,10 +724,14 @@
 /* scrollbars */
 .bd-board::-webkit-scrollbar,
 .bd-col-body::-webkit-scrollbar,
+.bd-list::-webkit-scrollbar,
+.bd-week-day::-webkit-scrollbar,
 .bd-modal::-webkit-scrollbar { width: 8px; height: 8px; }
 
 .bd-board::-webkit-scrollbar-thumb,
 .bd-col-body::-webkit-scrollbar-thumb,
+.bd-list::-webkit-scrollbar-thumb,
+.bd-week-day::-webkit-scrollbar-thumb,
 .bd-modal::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .12); border-radius: 4px; }
 
 .bd-search::placeholder,
