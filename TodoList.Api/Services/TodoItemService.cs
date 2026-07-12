@@ -160,6 +160,7 @@ namespace TodoList.Services
             todoItem.PriorityId = updateTodoItemDto.PriorityId;
             todoItem.ReferenceNote = updateTodoItemDto.ReferenceNote;
             todoItem.UpdatedAt = DateTime.UtcNow;
+            todoItem.Status = updateTodoItemDto.UpdateStatus ?? todoItem.Status;
 
             _uow.TodoItemRepository.Update(todoItem);
             await _uow.SaveChangesAsync(token);

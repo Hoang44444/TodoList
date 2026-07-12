@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TodoList.Models.Status;
 
 namespace TodoList.DTOs.TodoItemDTOs
 {
@@ -17,5 +18,6 @@ namespace TodoList.DTOs.TodoItemDTOs
 
         [MaxLength(1000)]
         public string ReferenceNote { get; set; } = string.Empty;
+        public TodoStatus? UpdateStatus { get; set; }
     }
 }
