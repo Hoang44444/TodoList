@@ -86,8 +86,9 @@ Completed & verified frontend work. Newest at the bottom. Append here when a tas
   (removed `_quick`/`QuickKey`); composer no longer defaults Start/Due dates (empty).
   Verified with 10 seeded tasks covering all 4 groups.
   Deferred: task-detail modal, "→ today" reschedule, Week/Stats tabs.
-  Backend notes (not fixed): `POST /api/todoitems` returns 201 with no body and no `Location` header (can't get new id);
-  `priorities` table has duplicate "Urgent" rows (id 2 & 6).
+  Backend notes: `POST /api/todoitems` originally returned 201 with no body/id — **since fixed** (see 2026-07-13
+  backend entry below, all POSTs now return the created object + `Location`). Duplicate "Urgent" priority rows
+  also cleaned up during the data-restore.
 
 - 2026-07-13 — **Week view** (`Pages/Board.razor` `Week` tab + `.bd-week-*` in `.razor.css`).
   7-column grid Mon→Sun (`T2`…`CN`) for the current week; each column lists tasks whose `DueDate.Date`
@@ -130,3 +131,26 @@ reschedule, prev/next-week nav, drag-to-reschedule.
   anchor appears (`target=_blank rel=noopener`, opens immediately). `IsHttpUrl()` guards http/https only
   (blocks `javascript:` etc.). New CSS: `.bd-title-click`, `.bd-btn.danger`, `.bd-ref-open`.
   Deferred: adding a time field + multi-link references in the composer.
+
+- 2026-07-13 — **Backend: POST endpoints now return the created object (with id).** User changed all three
+  create paths (tags, priorities, todoitems): service `Create*Async` returns the response DTO, controller
+  returns `CreatedAtAction(...)` → `201 Created` + `Location` header + body incl. `id`. For todoitems the
+  service reloads via `GetTodoItemByIdAsync(newId)` so `Priority`/`Tags` navigation is populated. All three
+  verified live (201 + Location + id). PUT/DELETE deliberately left as-is (client already has the id; the
+  refetch-after-mutation pattern doesn't need a return body).
+
+- 2026-07-13 — **Create + delete Tag/Priority from the composer** (`Pages/Board.razor` + `.bd-chip-*` CSS).
+  Create: dashed input at the end of the Tag and Priority chip rows ("+ tag mới ⏎" / "+ mức mới ⏎").
+  Enter → if the name already exists (case-insensitive) just select it (no duplicate); else
+  `CreateTagAsync`/`CreatePriorityAsync` POST and **read the new id straight from the 201 response body**
+  (no GET-refetch-by-name — enabled by the backend change above), append the chip, auto-select it.
+  Delete: one **⋮ button per group** toggles a delete-mode (`_tagDeleteMode`/`_priDeleteMode`); in that mode
+  chips turn red and a left-click deletes that item (`TagChipClick`/`PriChipClick` route to delete vs select).
+  Deleting an in-use **priority** returns 500 (FK) — surfaced as an error message, nothing corrupted
+  (verified live); tags are M2M so delete just unlinks. New API methods: `CreateTagAsync`/`CreatePriorityAsync`
+  (return DTO), `DeleteTagAsync`/`DeletePriorityAsync`. CSS: `.bd-chip-add`, `.bd-chip-mgr(.active)`,
+  `.bd-chip.del`, `.bd-del-hint`.
+  Note (process hygiene): editing DB data via PowerShell, ALWAYS parse with explicit `ConvertFrom-Json`
+  and delete by exact numeric id — never filter by name/wildcard. A `Where-Object -like/-eq` on
+  `Invoke-RestMethod` output matched every row (its array-valued props make `-eq` a filter, not a bool)
+  and wiped all data once; it was fully restored afterward.

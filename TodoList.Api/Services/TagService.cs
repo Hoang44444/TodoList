@@ -14,9 +14,19 @@ namespace TodoList.Services
         }
         public async Task<TagResponseDto> CreateTagAsync(CreateTagDto createTagDto, CancellationToken token)
         {
+            var name = createTagDto.TagName?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new BadRequestException("Tag name cannot be empty.");
+            }
+            if (await _uow.TagRepository.ExistsByNameAsync(name, null, token))
+            {
+                throw new ConflictException($"Tag '{name}' already exists.");
+            }
+
             var newTag = new Tag
             {
-                TagName = createTagDto.TagName,
+                TagName = name,
                 CreatedAt = DateTime.UtcNow,
             };
 
@@ -38,7 +48,17 @@ namespace TodoList.Services
                 throw new NotFoundException($"Tag with ID {tagId} not found.");
             }
 
-            tag.TagName = updateTagDto.TagName;
+            var name = updateTagDto.TagName?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new BadRequestException("Tag name cannot be empty.");
+            }
+            if (await _uow.TagRepository.ExistsByNameAsync(name, tagId, token))
+            {
+                throw new ConflictException($"Tag '{name}' already exists.");
+            }
+
+            tag.TagName = name;
             tag.UpdatedAt = DateTime.UtcNow;
             _uow.TagRepository.Update(tag);
             await _uow.SaveChangesAsync(token);

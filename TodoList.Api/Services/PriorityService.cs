@@ -15,10 +15,16 @@ namespace TodoList.Services
 
         public async Task<PriorityResponseDto> CreatePriorityAsync(CreatePriorityDto createPriorityDto, CancellationToken token)
         {
+            var name = createPriorityDto.PriorityName?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new BadRequestException("Priority name cannot be empty.");
+            }
+
             var newPriority = new Priority
             {
-                PriorityName = createPriorityDto.PriorityName,
-                CreatedAt =DateTime.UtcNow
+                PriorityName = name,
+                CreatedAt = DateTime.UtcNow
             };
             _uow.PriorityRepository.Add(newPriority);
             await _uow.SaveChangesAsync(token);
@@ -55,6 +61,15 @@ namespace TodoList.Services
             {
                 throw new NotFoundException($"Priority with ID {priorityId} not found.");
             }
+
+            // Chặn xóa khi còn TodoItem đang dùng (DB có OnDelete.Restrict) -> báo 409 thân thiện
+            // thay vì để SaveChanges ném DbUpdateException -> 500.
+            if (await _uow.TodoItemRepository.AnyByPriorityAsync(priorityId, token))
+            {
+                throw new ConflictException(
+                    "Cannot delete this priority because it is still used by one or more tasks.");
+            }
+
             _uow.PriorityRepository.Delete(existingPriority);
             await _uow.SaveChangesAsync(token);
         }

@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using TodoList.Exceptions;
 
 namespace TodoList.Middleware
@@ -23,17 +22,19 @@ namespace TodoList.Middleware
             }
             catch (Exception ex)
             {
-                // Chọn status code + message theo loại exception
+                // Chọn status code + message theo loại exception.
+                // Chỉ các lỗi "do client" mới lộ message; mọi lỗi ngoài dự kiến (500)
+                // trả message chung để không rò rỉ chi tiết SQL/stack ra ngoài.
                 var (statusCode, message) = ex switch
                 {
                     NotFoundException => (StatusCodes.Status404NotFound, ex.Message),
                     BadRequestException => (StatusCodes.Status400BadRequest, ex.Message),
-                    DbUpdateException dbEx => (StatusCodes.Status500InternalServerError,
-                        dbEx.InnerException?.Message ?? dbEx.Message),
-                    _ => (StatusCodes.Status500InternalServerError, ex.Message)
+                    ConflictException => (StatusCodes.Status409Conflict, ex.Message),
+                    _ => (StatusCodes.Status500InternalServerError,
+                        "Đã xảy ra lỗi phía máy chủ. Vui lòng thử lại sau.")
                 };
 
-                // Lỗi ngoài dự kiến (500) thì ghi log để còn debug
+                // Lỗi ngoài dự kiến (500) thì ghi log đầy đủ để còn debug
                 if (statusCode == StatusCodes.Status500InternalServerError)
                 {
                     _logger.LogError(ex, "Unhandled exception");

@@ -12,5 +12,9 @@ namespace TodoList.Web.Services
         Task DeleteAsync(int id);
         Task<List<TagResponseDto>> GetTagsAsync();
         Task<List<PriorityResponseDto>> GetPrioritiesAsync();
+        Task<TagResponseDto> CreateTagAsync(string name);
+        Task<PriorityResponseDto> CreatePriorityAsync(string name);
+        Task DeleteTagAsync(int id);
+        Task DeletePriorityAsync(int id);
     }
 }
