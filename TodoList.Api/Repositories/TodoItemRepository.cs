@@ -6,10 +6,9 @@ namespace TodoList.Repositories
 {
     public class TodoItemRepository : GenericRepository<TodoItem>, ITodoItemRepository
     {
-        private readonly AppDbContext _context;
+        // _context kế thừa (protected) từ GenericRepository
         public TodoItemRepository(AppDbContext context) : base(context)
         {
-            _context = context;
         }
 
         // Nạp kèm Tags để EF theo dõi được quan hệ many-to-many khi update
@@ -37,6 +36,11 @@ namespace TodoList.Repositories
                 .Include(t => t.Priority)
                 .AsNoTracking()
                 .ToListAsync(token);
+        }
+
+        public async Task<bool> AnyByPriorityAsync(int priorityId, CancellationToken token)
+        {
+            return await _context.TodoItems.AnyAsync(t => t.PriorityId == priorityId, token);
         }
     }
 }
