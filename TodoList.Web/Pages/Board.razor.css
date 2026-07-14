@@ -316,12 +316,20 @@
 }
 
 .bd-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: 10.5px;
     color: rgba(255, 255, 255, .6);
     background: rgba(255, 255, 255, .06);
     border: 1px solid rgba(255, 255, 255, .1);
     padding: 1px 7px;
     border-radius: 4px;
+}
+
+.bd-tag .bd-dot {
+    width: 6px;
+    height: 6px;
 }
 
 .bd-pri {
@@ -906,6 +914,9 @@
 }
 
 .bd-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: rgba(255, 255, 255, .04);
     border: 1px solid rgba(255, 255, 255, .1);
     color: rgba(255, 255, 255, .65);
@@ -916,10 +927,66 @@
     cursor: pointer;
 }
 
+.bd-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: none;
+}
+
 .bd-chip.sel {
     background: rgba(169, 150, 242, .16);
     border-color: rgba(169, 150, 242, .5);
     color: #cabdf7;
+}
+
+.bd-chip-add {
+    width: 118px;
+    background: transparent;
+    border: 1.5px dashed rgba(255, 255, 255, .16);
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-family: inherit;
+    font-size: 12px;
+    color: #ececf1;
+    outline: none;
+}
+
+.bd-chip-add:focus { border-color: rgba(169, 150, 242, .5); }
+.bd-chip-add::placeholder { color: rgba(255, 255, 255, .3); }
+
+/* chế độ xóa tag/priority */
+.bd-chip-mgr {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, .1);
+    color: rgba(255, 255, 255, .5);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 4px 9px;
+    border-radius: 6px;
+}
+
+.bd-chip-mgr:hover { color: #ececf1; background: rgba(255, 255, 255, .06); }
+
+.bd-chip-mgr.active {
+    border-color: rgba(242, 139, 139, .5);
+    color: #f28b8b;
+    background: rgba(242, 139, 139, .1);
+}
+
+.bd-chip.del {
+    border-color: rgba(242, 139, 139, .5);
+    color: #f28b8b;
+    cursor: pointer;
+}
+
+.bd-chip.del:hover { background: rgba(242, 139, 139, .14); }
+
+.bd-del-hint {
+    font-size: 11.5px;
+    color: #f28b8b;
+    margin-top: -4px;
 }
 
 .bd-hint {

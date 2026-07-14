@@ -46,5 +46,33 @@ namespace TodoList.Web.Services
 
         public async Task<List<PriorityResponseDto>> GetPrioritiesAsync()
             => await _http.GetFromJsonAsync<List<PriorityResponseDto>>("api/priorities") ?? new();
+
+        // POST api/tags → 201 + object vừa tạo (có id)
+        public async Task<TagResponseDto> CreateTagAsync(string name)
+        {
+            var res = await _http.PostAsJsonAsync("api/tags", new { tagName = name });
+            res.EnsureSuccessStatusCode();
+            return (await res.Content.ReadFromJsonAsync<TagResponseDto>())!;
+        }
+
+        // POST api/priorities → 201 + object vừa tạo (có id)
+        public async Task<PriorityResponseDto> CreatePriorityAsync(string name)
+        {
+            var res = await _http.PostAsJsonAsync("api/priorities", new { priorityName = name });
+            res.EnsureSuccessStatusCode();
+            return (await res.Content.ReadFromJsonAsync<PriorityResponseDto>())!;
+        }
+
+        public async Task DeleteTagAsync(int id)
+        {
+            var res = await _http.DeleteAsync($"api/tags/{id}");
+            res.EnsureSuccessStatusCode();
+        }
+
+        public async Task DeletePriorityAsync(int id)
+        {
+            var res = await _http.DeleteAsync($"api/priorities/{id}");
+            res.EnsureSuccessStatusCode();
+        }
     }
 }

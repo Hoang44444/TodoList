@@ -291,12 +291,21 @@
 
                 <label class="bd-label">Ưu tiên</label>
                 <div class="bd-chips">
-                    <button class="bd-chip @(_dPriority is null ? "sel" : "")" @onclick="() => _dPriority = null">None</button>
+                    <button class="bd-chip @(_dPriority is null && !_priDeleteMode ? "sel" : "")" @onclick="() => { if (!_priDeleteMode) _dPriority = null; }">None</button>
                     @foreach (var p in _priorities.Where(x => x.Id.HasValue))
                     {
-                        <button class="bd-chip @(_dPriority == p.Id ? "sel" : "")" @onclick="() => _dPriority = p.Id">@p.PriorityName</button>
+                        <button class="bd-chip @(_priDeleteMode ? "del" : (_dPriority == p.Id ? "sel" : ""))" @onclick="() => PriChipClick(p)"><span class="bd-dot" style="background:@DotColor(p.Id)"></span>@p.PriorityName</button>
+                    }
+                    <input class="bd-chip-add" placeholder="+ mức mới ⏎" @bind="_priDraft" @bind:event="oninput" @onkeydown="AddPriDraft" />
+                    @if (_priorities.Any(x => x.Id.HasValue))
+                    {
+                        <button class="bd-chip-mgr @(_priDeleteMode ? "active" : "")" title="Xóa ưu tiên" @onclick="() => _priDeleteMode = !_priDeleteMode">⋮</button>
                     }
                 </div>
+                @if (_priDeleteMode)
+                {
+                    <div class="bd-del-hint">Bấm vào mức ưu tiên để xóa · bấm ⋮ để xong</div>
+                }
 
                 <label class="bd-label">Tag</label>
                 <div class="bd-chips">
@@ -306,9 +315,18 @@
                     }
                     @foreach (var tg in _tags.Where(x => x.Id.HasValue))
                     {
-                        <button class="bd-chip @(_dTags.Contains(tg.Id!.Value) ? "sel" : "")" @onclick="() => ToggleTag(tg.Id!.Value)">@tg.TagName</button>
+                        <button class="bd-chip @(_tagDeleteMode ? "del" : (_dTags.Contains(tg.Id!.Value) ? "sel" : ""))" @onclick="() => TagChipClick(tg)"><span class="bd-dot" style="background:@DotColor(tg.Id)"></span>@tg.TagName</button>
+                    }
+                    <input class="bd-chip-add" placeholder="+ tag mới ⏎" @bind="_tagDraft" @bind:event="oninput" @onkeydown="AddTagDraft" />
+                    @if (_tags.Any(x => x.Id.HasValue))
+                    {
+                        <button class="bd-chip-mgr @(_tagDeleteMode ? "active" : "")" title="Xóa tag" @onclick="() => _tagDeleteMode = !_tagDeleteMode">⋮</button>
                     }
                 </div>
+                @if (_tagDeleteMode)
+                {
+                    <div class="bd-del-hint">Bấm vào tag để xóa · bấm ⋮ để xong</div>
+                }
 
                 <label class="bd-label">Tham chiếu (link)</label>
                 <input class="bd-input" type="url" placeholder="Dán link — vd https://..." @bind="_dRef" @bind:event="oninput" />
@@ -352,6 +370,14 @@
     private int? _dPriority;
     private readonly HashSet<int> _dTags = new();
     private string _dRef = "";
+
+    // ô tạo tag/priority mới trong composer
+    private string _tagDraft = "";
+    private string _priDraft = "";
+
+    // chế độ xóa (bật bằng nút ⋮): bấm chip = xóa chip đó
+    private bool _tagDeleteMode;
+    private bool _priDeleteMode;
 
     private static DateTime Today => DateTime.Today;
 
@@ -445,6 +471,10 @@
     private static readonly string[] TagColors =
         { "#a996f2", "#8ab4ff", "#7bd8b0", "#e8c97a", "#f2a2c0", "#7fd4e0" };
 
+    // Màu chấm ổn định theo id (cùng thẻ luôn cùng màu)
+    private static string DotColor(int? id)
+        => TagColors[Math.Abs(id ?? 0) % TagColors.Length];
+
     private IEnumerable<TodoItemResponseDto> OverdueTasks()
         => (_todos ?? new()).Where(IsOverdue).OrderBy(t => t.DueDate);
 
@@ -503,7 +533,7 @@
             <div class="bd-meta">
                 @foreach (var tag in t.Tags)
                 {
-                    <span class="bd-tag">@tag.TagName</span>
+                    <span class="bd-tag"><span class="bd-dot" style="background:@DotColor(tag.Id)"></span>@tag.TagName</span>
                 }
                 @if (!string.IsNullOrWhiteSpace(t.PriorityName))
                 {
@@ -530,7 +560,7 @@
         <span class="bd-row-title bd-title-click @(IsDone(t) ? "done" : "")" title="Bấm để sửa" @onclick="() => OpenEdit(t)">@t.TodoItemName</span>
         @foreach (var tag in t.Tags)
         {
-            <span class="bd-tag">@tag.TagName</span>
+            <span class="bd-tag"><span class="bd-dot" style="background:@DotColor(tag.Id)"></span>@tag.TagName</span>
         }
         @if (!string.IsNullOrWhiteSpace(t.PriorityName))
         {
@@ -589,7 +619,7 @@
             <div class="bd-week-meta">
                 @foreach (var tag in t.Tags)
                 {
-                    <span class="bd-tag">@tag.TagName</span>
+                    <span class="bd-tag"><span class="bd-dot" style="background:@DotColor(tag.Id)"></span>@tag.TagName</span>
                 }
                 @if (WeekTime(t).Length > 0)
                 {
@@ -646,6 +676,7 @@
         _editingId = null;
         _dTitle = ""; _dDesc = ""; _dRef = "";
         _dStart = null; _dDue = null; _dPriority = null; _dTags.Clear();
+        _tagDraft = ""; _priDraft = ""; _tagDeleteMode = false; _priDeleteMode = false;
         _showComposer = true;
     }
 
@@ -661,6 +692,7 @@
         _dTags.Clear();
         foreach (var tg in t.Tags.Where(x => x.Id.HasValue))
             _dTags.Add(tg.Id!.Value);
+        _tagDraft = ""; _priDraft = ""; _tagDeleteMode = false; _priDeleteMode = false;
         _showComposer = true;
     }
 
@@ -669,6 +701,95 @@
     private void ToggleTag(int id)
     {
         if (!_dTags.Add(id)) _dTags.Remove(id);
+    }
+
+    private async Task AddTagDraft(KeyboardEventArgs e)
+    {
+        if (e.Key != "Enter") return;
+        var name = _tagDraft.Trim();
+        if (name.Length == 0) return;
+
+        // trùng tên (không phân biệt hoa/thường) → chọn cái có sẵn, không tạo trùng
+        var existing = _tags.FirstOrDefault(t => t.Id.HasValue
+            && string.Equals(t.TagName, name, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            _dTags.Add(existing.Id!.Value);
+            _tagDraft = "";
+            return;
+        }
+        try
+        {
+            var created = await Api.CreateTagAsync(name);   // trả về object có id
+            _tags.Add(created);
+            if (created.Id.HasValue) _dTags.Add(created.Id.Value);
+            _tagDraft = "";
+        }
+        catch (Exception ex) { _error = $"Tạo tag thất bại: {ex.Message}"; }
+    }
+
+    private async Task AddPriDraft(KeyboardEventArgs e)
+    {
+        if (e.Key != "Enter") return;
+        var name = _priDraft.Trim();
+        if (name.Length == 0) return;
+
+        var existing = _priorities.FirstOrDefault(p => p.Id.HasValue
+            && string.Equals(p.PriorityName, name, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            _dPriority = existing.Id;
+            _priDraft = "";
+            return;
+        }
+        try
+        {
+            var created = await Api.CreatePriorityAsync(name);
+            _priorities.Add(created);
+            _dPriority = created.Id;
+            _priDraft = "";
+        }
+        catch (Exception ex) { _error = $"Tạo ưu tiên thất bại: {ex.Message}"; }
+    }
+
+    private async Task TagChipClick(TagResponseDto tg)
+    {
+        if (_tagDeleteMode) await DeleteTag(tg);
+        else if (tg.Id.HasValue) ToggleTag(tg.Id.Value);
+    }
+
+    private async Task PriChipClick(PriorityResponseDto p)
+    {
+        if (_priDeleteMode) await DeletePriority(p);
+        else _dPriority = p.Id;
+    }
+
+    private async Task DeleteTag(TagResponseDto tg)
+    {
+        if (!tg.Id.HasValue) return;
+        try
+        {
+            await Api.DeleteTagAsync(tg.Id.Value);
+            _tags.RemoveAll(t => t.Id == tg.Id);
+            _dTags.Remove(tg.Id.Value);
+            if (!_tags.Any(x => x.Id.HasValue)) _tagDeleteMode = false;
+            await LoadAsync();   // task có thể vừa bị gỡ tag
+        }
+        catch (Exception ex) { _error = $"Xóa tag thất bại: {ex.Message}"; }
+    }
+
+    private async Task DeletePriority(PriorityResponseDto p)
+    {
+        if (!p.Id.HasValue) return;
+        try
+        {
+            await Api.DeletePriorityAsync(p.Id.Value);
+            _priorities.RemoveAll(x => x.Id == p.Id);
+            if (_dPriority == p.Id) _dPriority = null;
+            if (!_priorities.Any(x => x.Id.HasValue)) _priDeleteMode = false;
+            await LoadAsync();
+        }
+        catch (Exception ex) { _error = $"Xóa ưu tiên thất bại: {ex.Message}"; }
     }
 
     private async Task SubmitComposer()
